@@ -1,0 +1,17 @@
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\bin\Debug\net8.0\SchoolProject.Utilities.deps.json
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\bin\Debug\net8.0\SchoolProject.Utilities.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\bin\Debug\net8.0\SchoolProject.Utilities.pdb
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\bin\Debug\net8.0\SchoolProject.Models.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\bin\Debug\net8.0\SchoolProject.Repositories.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\bin\Debug\net8.0\SchoolProject.Repositories.pdb
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\bin\Debug\net8.0\SchoolProject.Models.pdb
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\SchoolProject.Utilities.csproj.AssemblyReference.cache
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\SchoolProject.Utilities.GeneratedMSBuildEditorConfig.editorconfig
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\SchoolProject.Utilities.AssemblyInfoInputs.cache
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\SchoolProject.Utilities.AssemblyInfo.cs
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\SchoolProject.Utilities.csproj.CoreCompileInputs.cache
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\SchoolPr.C8510D6F.Up2Date
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\SchoolProject.Utilities.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\refint\SchoolProject.Utilities.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\SchoolProject.Utilities.pdb
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\ref\SchoolProject.Utilities.dll

@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.13" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.26">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.23" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SchoolProject.Models\SchoolProject.Models.csproj" />
+    <ProjectReference Include="..\SchoolProject.Repositories\SchoolProject.Repositories.csproj" />
+    <ProjectReference Include="..\SchoolProject.Servies\SchoolProject.Servies.csproj" />
+    <ProjectReference Include="..\SchoolProject.Utilities\SchoolProject.Utilities.csproj" />
+    <ProjectReference Include="..\SchoolProject.ViewModels\SchoolProject.ViewModels.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Area\Admin\Data\" />
+    <Folder Include="Area\Admin\Models\" />
+  </ItemGroup>
+
+</Project>
