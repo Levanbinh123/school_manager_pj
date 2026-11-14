@@ -17,8 +17,16 @@ namespace SchoolProject.Models
         public double MidtermScore { get; set; }
         public double FinalScore { get; set; }
 
+        // Điểm tổng kết hệ 10
         public double TotalScore { get; set; }
 
-        public string LetterGrade { get; set; }
+        // Điểm chữ: A, B+, B, C+, C, D+, D, F
+        public string LetterGrade { get; set; } = string.Empty;
+
+        // Điểm hệ 4
+        public double GPA { get; set; }
+
+        // Đã chốt điểm hay chưa
+        public bool IsFinalized { get; set; } = false;
     }
 }

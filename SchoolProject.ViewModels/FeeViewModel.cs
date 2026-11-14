@@ -1,30 +1,36 @@
-﻿using SchoolProject.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using SchoolProject.Models;
 
 namespace SchoolProject.ViewModels
 {
-
     public class FeeViewModel
     {
-        private Fee fee;
-
         public FeeViewModel(Fee fee)
         {
-            this.fee = fee;
+            Id = fee.Id;
+
+            StudentId = fee.StudentId;
+            SubjectId = fee.SubjectId;
+            SessionId = fee.SessionId;
+
+            Credits = fee.Credits;
+            PricePerCredit = fee.PricePerCredit;
+
+            Amount = fee.Amount;
+            DueDate = fee.DueDate;
+
+            Status = fee.Status;
+            PaymentMethod = fee.PaymentMethod;
+            TransactionId = fee.TransactionId;
+            PaidAt = fee.PaidAt;
         }
 
         public int Id { get; set; }
 
         public int StudentId { get; set; }
-
         public string? StudentName { get; set; }
 
         public int SubjectId { get; set; }
-
         public string? SubjectName { get; set; }
 
         public int SessionId { get; set; }

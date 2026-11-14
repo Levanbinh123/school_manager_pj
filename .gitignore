@@ -1,0 +1,17 @@
+# Visual Studio
+.vs/
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# IDE
+.idea/
+
+# Build outputs
+[Dd]ebug/
+[Rr]elease/
+
+# Sensitive configuration
+.env
+appsettings.Development.json

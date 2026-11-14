@@ -429,6 +429,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "AWSSDK.S3": {
+              "target": "Package",
+              "version": "[4.1.0, )"
+            },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[8.0.3, )"
@@ -794,6 +798,9 @@
             "projectReferences": {
               "C:\\he_thong_quan_ly_truong_hoc\\SchoolProject\\SchoolProject.Repositories\\SchoolProject.Repositories.csproj": {
                 "projectPath": "C:\\he_thong_quan_ly_truong_hoc\\SchoolProject\\SchoolProject.Repositories\\SchoolProject.Repositories.csproj"
+              },
+              "C:\\he_thong_quan_ly_truong_hoc\\SchoolProject\\SchoolProject.Utilities\\SchoolProject.Utilities.csproj": {
+                "projectPath": "C:\\he_thong_quan_ly_truong_hoc\\SchoolProject\\SchoolProject.Utilities\\SchoolProject.Utilities.csproj"
               },
               "C:\\he_thong_quan_ly_truong_hoc\\SchoolProject\\SchoolProject.ViewModels\\SchoolProject.ViewModels.csproj": {
                 "projectPath": "C:\\he_thong_quan_ly_truong_hoc\\SchoolProject\\SchoolProject.ViewModels\\SchoolProject.ViewModels.csproj"
@@ -1551,6 +1558,9 @@
             "projectReferences": {
               "C:\\he_thong_quan_ly_truong_hoc\\SchoolProject\\SchoolProject.Models\\SchoolProject.Models.csproj": {
                 "projectPath": "C:\\he_thong_quan_ly_truong_hoc\\SchoolProject\\SchoolProject.Models\\SchoolProject.Models.csproj"
+              },
+              "C:\\he_thong_quan_ly_truong_hoc\\SchoolProject\\SchoolProject.Repositories\\SchoolProject.Repositories.csproj": {
+                "projectPath": "C:\\he_thong_quan_ly_truong_hoc\\SchoolProject\\SchoolProject.Repositories\\SchoolProject.Repositories.csproj"
               }
             }
           }
@@ -1995,10 +2005,6 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[8.0.23, 8.0.23]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Host.win-x64",
               "version": "[8.0.23, 8.0.23]"
             },
             {

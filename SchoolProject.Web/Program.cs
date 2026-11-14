@@ -1,16 +1,24 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Amazon.Runtime;
+using Amazon.S3;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SchoolProject.Models;
 using SchoolProject.Repositories;
 using SchoolProject.Servies;
+using SchoolProject.Servies.Academiyear;
 using SchoolProject.Utilities;
+using SchoolProject.ViewModels;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<VnPaySettings>(
     builder.Configuration.GetSection("VnPay"));
+builder.Services.Configure<CloudflareR2Options>(
+    builder.Configuration.GetSection("CloudflareR2"));
 
 // =========================
 // CORS
@@ -96,6 +104,26 @@ builder.Services
 builder.Services.AddControllers();
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var options = sp.GetRequiredService<
+        IOptions<CloudflareR2Options>>().Value;
+
+    var config = new AmazonS3Config
+    {
+        ServiceURL = $"https://{options.AccountId}.r2.cloudflarestorage.com",
+        ForcePathStyle = true,
+        AuthenticationRegion = "auto"
+    };
+
+    return new AmazonS3Client(
+        options.AccessKeyId,
+        options.SecretAccessKey,
+        config
+    );
+});
+
+builder.Services.AddSingleton<IFileStorageService, CloudflareR2StorageService>();
 // =========================
 // Dependency Injection
 // =========================
@@ -114,14 +142,40 @@ builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IAttendanceService,AttendanceService>();
 builder.Services.AddScoped<IFeeService, FeeService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
+builder.Services.AddScoped<IMajorSubjectService, MajorSubjectService>();
+builder.Services.AddScoped<IAcademicYearService, AcademicYearService>();
+builder.Services.AddScoped<IStudyPeriodService, StudyPeriodService>();
+builder.Services.AddHostedService<ClassSessionBackgroundService>();
+builder.Services.AddScoped<
+    IAdminDashboardService,
+    AdminDashboardService>();
+builder.Services.AddScoped<
+    ITuitionReportService,
+    TuitionReportService>();
+builder.Services.AddScoped<
+    IAcademicReportService,
+    AcademicReportService>();
+builder.Services.AddScoped<
+    IGradeConfigurationService,
+    GradeConfigurationService>();
+builder.Services.AddScoped<
+    IStudentLeaveService,
+    StudentLeaveService>();
 builder.Services.AddScoped<
     IStudentScoreService,
     StudentScoreService>();
+builder.Services.AddScoped<
+    ITuitionRateService,
+    TuitionRateService>();
 
 builder.Services.AddScoped<
     IAssignmentService,
     AssignmentService>();
 builder.Services.AddScoped<IVnPayService, VnPayService>();
+builder.Services.AddScoped<IMajorService, MajorService>();
+builder.Services.Configure<SePaySettings>(
+    builder.Configuration.GetSection("SePay"));
+builder.Services.AddScoped<ISePayService, SePayService>();
 var app = builder.Build();
 
 // =========================

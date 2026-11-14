@@ -42,10 +42,8 @@ namespace SchoolProject.Web.Controllers
         // GET BY ID
         // GET: api/admin/Students/1
         // =====================================================
-
         [HttpGet("{id}")]
-        public IActionResult GetStudentById(
-            int id)
+        public async Task<IActionResult> GetStudentById(int id)
         {
             if (id <= 0)
             {
@@ -55,8 +53,7 @@ namespace SchoolProject.Web.Controllers
                 });
             }
 
-            var student =
-                _studentService.GetById(id);
+            var student = await _studentService.GetById(id);
 
             if (student == null)
             {

@@ -2,7 +2,6 @@ C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\bin\Debug\net8.0\
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\bin\Debug\net8.0\appsettings.json
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\bin\Debug\net8.0\SchoolProject.Web.staticwebassets.runtime.json
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\bin\Debug\net8.0\SchoolProject.Web.staticwebassets.endpoints.json
-C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\bin\Debug\net8.0\SchoolProject.Web.exe
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\bin\Debug\net8.0\SchoolProject.Web.deps.json
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\bin\Debug\net8.0\SchoolProject.Web.runtimeconfig.json
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\bin\Debug\net8.0\SchoolProject.Web.dll
@@ -247,3 +246,8 @@ C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\obj\Debug\net8.0\
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\obj\Debug\net8.0\SchoolProject.Web.genruntimeconfig.cache
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\obj\Debug\net8.0\ref\SchoolProject.Web.dll
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\obj\Debug\net8.0\SchoolProject.Web.sourcelink.json
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\bin\Debug\net8.0\AWSSDK.Core.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\bin\Debug\net8.0\AWSSDK.Extensions.Numerics.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\bin\Debug\net8.0\AWSSDK.S3.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Web\bin\Debug\net8.0\System.IO.Hashing.dll

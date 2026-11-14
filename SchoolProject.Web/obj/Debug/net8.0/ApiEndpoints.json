@@ -1,5 +1,131 @@
 [
   {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.AcademicYearController",
+    "Method": "GetAll",
+    "RelativePath": "api/admin/academic-years",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.AcademicYearController",
+    "Method": "Create",
+    "RelativePath": "api/admin/academic-years",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "vm",
+        "Type": "SchoolProject.ViewModels.AcademicYear.SchoolProject.ViewModels.CreateAcademicYearViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.AcademicYearController",
+    "Method": "GetById",
+    "RelativePath": "api/admin/academic-years/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.AcademicYearController",
+    "Method": "Update",
+    "RelativePath": "api/admin/academic-years/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "vm",
+        "Type": "SchoolProject.ViewModels.AcademicYear.UpdateAcademicYearViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.AcademicYearController",
+    "Method": "Activate",
+    "RelativePath": "api/admin/academic-years/{id}/activate",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.AcademicYearController",
+    "Method": "Close",
+    "RelativePath": "api/admin/academic-years/{id}/close",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "vm",
+        "Type": "SchoolProject.ViewModels.CloseAcademicYearViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.AcademicYearController",
+    "Method": "Complete",
+    "RelativePath": "api/admin/academic-years/{id}/complete",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.AcademicYearController",
+    "Method": "GetCurrent",
+    "RelativePath": "api/admin/academic-years/current",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "SchoolProject.Web.Area.Admin.Controller.ClassController",
     "Method": "GetAllClass",
     "RelativePath": "api/admin/Class",
@@ -96,6 +222,16 @@
   },
   {
     "ContainingType": "SchoolProject.Web.Area.Admin.Controller.ClassController",
+    "Method": "GetClassesAwaitingPaymentApproval",
+    "RelativePath": "api/admin/Class/payment/waiting",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.ClassController",
     "Method": "AddClassSession",
     "RelativePath": "api/admin/Class/session",
     "HttpMethod": "POST",
@@ -112,6 +248,80 @@
   },
   {
     "ContainingType": "SchoolProject.Web.Area.Admin.Controller.ClassController",
+    "Method": "CancelClassSession",
+    "RelativePath": "api/admin/Class/session/{id}/cancel",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.ClassController",
+    "Method": "ConfirmClassSession",
+    "RelativePath": "api/admin/Class/session/{id}/confirm",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.ClassController",
+    "Method": "ApprovePaymentPeriod",
+    "RelativePath": "api/admin/Class/session/{id}/payment/approve",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.ClassController",
+    "Method": "GetPaymentSummary",
+    "RelativePath": "api/admin/Class/session/{id}/payment/summary",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.ClassController",
+    "Method": "GetAllClassSessions",
+    "RelativePath": "api/admin/Class/sessions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.ClassController",
     "Method": "AddStudentsToClassSession",
     "RelativePath": "api/admin/Class/students",
     "HttpMethod": "POST",
@@ -124,6 +334,16 @@
         "IsRequired": true
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.AdminDashboardController",
+    "Method": "GetDashboard",
+    "RelativePath": "api/admin/dashboard",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
@@ -206,9 +426,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "SchoolProject.Web.Controllers.ScheduleController",
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.MajorSubjectsController",
     "Method": "GetAll",
-    "RelativePath": "api/admin/Schedule",
+    "RelativePath": "api/admin/major-subjects",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -216,25 +436,88 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "SchoolProject.Web.Controllers.ScheduleController",
-    "Method": "Add",
-    "RelativePath": "api/admin/Schedule",
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.MajorSubjectsController",
+    "Method": "AssignSubject",
+    "RelativePath": "api/admin/major-subjects",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
         "Name": "vm",
-        "Type": "SchoolProject.ViewModels.CreateScheduleViewModel",
+        "Type": "SchoolProject.ViewModels.AssignSubjectToMajorViewModel",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "SchoolProject.Web.Controllers.ScheduleController",
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.MajorSubjectsController",
+    "Method": "RemoveSubject",
+    "RelativePath": "api/admin/major-subjects/{majorId}/{subjectId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "majorId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "subjectId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.MajorSubjectsController",
+    "Method": "GetByMajor",
+    "RelativePath": "api/admin/major-subjects/major/{majorId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "majorId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.MajorsController",
+    "Method": "GetAll",
+    "RelativePath": "api/admin/majors",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.MajorsController",
+    "Method": "Add",
+    "RelativePath": "api/admin/majors",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "vm",
+        "Type": "SchoolProject.ViewModels.CreateMajorViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.MajorsController",
     "Method": "GetById",
-    "RelativePath": "api/admin/Schedule/{id}",
+    "RelativePath": "api/admin/majors/{id}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -248,9 +531,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "SchoolProject.Web.Controllers.ScheduleController",
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.MajorsController",
     "Method": "Update",
-    "RelativePath": "api/admin/Schedule/{id}",
+    "RelativePath": "api/admin/majors/{id}",
     "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
@@ -262,16 +545,16 @@
       },
       {
         "Name": "vm",
-        "Type": "SchoolProject.ViewModels.CreateScheduleViewModel",
+        "Type": "SchoolProject.ViewModels.CreateMajorViewModel",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "SchoolProject.Web.Controllers.ScheduleController",
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.MajorsController",
     "Method": "Delete",
-    "RelativePath": "api/admin/Schedule/{id}",
+    "RelativePath": "api/admin/majors/{id}",
     "HttpMethod": "DELETE",
     "IsController": true,
     "Order": 0,
@@ -285,46 +568,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "SchoolProject.Web.Controllers.SessionApiController",
-    "Method": "GetAll",
-    "RelativePath": "api/admin/SessionApi",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "pageNumber",
-        "Type": "System.Int32",
-        "IsRequired": false
-      },
-      {
-        "Name": "pageSize",
-        "Type": "System.Int32",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "SchoolProject.Web.Controllers.SessionApiController",
-    "Method": "Add",
-    "RelativePath": "api/admin/SessionApi",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "vm",
-        "Type": "SchoolProject.ViewModels.CreateSessionViewModel",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "SchoolProject.Web.Controllers.SessionApiController",
-    "Method": "GetById",
-    "RelativePath": "api/admin/SessionApi/{sessionId}",
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.AcademicReportController",
+    "Method": "GetSessionReport",
+    "RelativePath": "api/admin/reports/academic/session/{sessionId}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -338,13 +584,277 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "SchoolProject.Web.Controllers.SessionApiController",
-    "Method": "GetAll",
-    "RelativePath": "api/admin/SessionApi/all",
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.AcademicReportController",
+    "Method": "GetAcademicYearReport",
+    "RelativePath": "api/admin/reports/academic/year/{academicYearId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "academicYearId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.TuitionReportController",
+    "Method": "GetTuitionOverview",
+    "RelativePath": "api/admin/reports/tuition/overview",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.TuitionReportController",
+    "Method": "GetTuitionBySession",
+    "RelativePath": "api/admin/reports/tuition/session/{sessionId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sessionId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.SessionController",
+    "Method": "GetAll",
+    "RelativePath": "api/admin/sessions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.SessionController",
+    "Method": "Create",
+    "RelativePath": "api/admin/sessions",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "vm",
+        "Type": "SchoolProject.ViewModels.CreateSessionViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.SessionController",
+    "Method": "GetById",
+    "RelativePath": "api/admin/sessions/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.SessionController",
+    "Method": "Update",
+    "RelativePath": "api/admin/sessions/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "vm",
+        "Type": "SchoolProject.ViewModels.UpdateSessionViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.SessionController",
+    "Method": "Delete",
+    "RelativePath": "api/admin/sessions/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.SessionController",
+    "Method": "Activate",
+    "RelativePath": "api/admin/sessions/{id}/activate",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.SessionController",
+    "Method": "Complete",
+    "RelativePath": "api/admin/sessions/{id}/complete",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.SessionController",
+    "Method": "GetByAcademicYear",
+    "RelativePath": "api/admin/sessions/by-academic-year/{academicYearId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "academicYearId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.StudentLeavesController",
+    "Method": "GetAll",
+    "RelativePath": "api/admin/StudentLeaves",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.StudentLeavesController",
+    "Method": "GetById",
+    "RelativePath": "api/admin/StudentLeaves/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.StudentLeavesController",
+    "Method": "Approve",
+    "RelativePath": "api/admin/StudentLeaves/{id}/approve",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "model",
+        "Type": "SchoolProject.ViewModels.StudentLeaveDecisionViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.StudentLeavesController",
+    "Method": "Reject",
+    "RelativePath": "api/admin/StudentLeaves/{id}/reject",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "model",
+        "Type": "SchoolProject.ViewModels.StudentLeaveDecisionViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.StudentLeavesController",
+    "Method": "ReturnToStudy",
+    "RelativePath": "api/admin/StudentLeaves/{id}/return",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.StudentLeavesController",
+    "Method": "Create",
+    "RelativePath": "api/admin/StudentLeaves/student/{studentId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "studentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "model",
+        "Type": "SchoolProject.ViewModels.CreateStudentLeaveViewModel",
+        "IsRequired": true
+      }
+    ],
     "ReturnTypes": []
   },
   {
@@ -446,6 +956,95 @@
     "ContainingType": "SchoolProject.Web.Controllers.StudentsController",
     "Method": "GetStudentCount",
     "RelativePath": "api/admin/Students/count",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.StudyPeriodController",
+    "Method": "GetAll",
+    "RelativePath": "api/admin/study-periods",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.StudyPeriodController",
+    "Method": "Create",
+    "RelativePath": "api/admin/study-periods",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "SchoolProject.Models.StudyPeriod",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.StudyPeriodController",
+    "Method": "GetById",
+    "RelativePath": "api/admin/study-periods/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.StudyPeriodController",
+    "Method": "Update",
+    "RelativePath": "api/admin/study-periods/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "model",
+        "Type": "SchoolProject.Models.StudyPeriod",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.StudyPeriodController",
+    "Method": "Delete",
+    "RelativePath": "api/admin/study-periods/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.StudyPeriodController",
+    "Method": "GetActivePeriods",
+    "RelativePath": "api/admin/study-periods/active",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -600,6 +1199,101 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.TuitionRateController",
+    "Method": "GetAll",
+    "RelativePath": "api/admin/tuition-rates",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.TuitionRateController",
+    "Method": "Create",
+    "RelativePath": "api/admin/tuition-rates",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "SchoolProject.Web.Area.Admin.Controller.CreateTuitionRateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.TuitionRateController",
+    "Method": "Update",
+    "RelativePath": "api/admin/tuition-rates/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "SchoolProject.Web.Area.Admin.Controller.UpdateTuitionRateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.TuitionRateController",
+    "Method": "Delete",
+    "RelativePath": "api/admin/tuition-rates/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.TuitionRateController",
+    "Method": "GetBySession",
+    "RelativePath": "api/admin/tuition-rates/session/{sessionId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sessionId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.AuthController",
+    "Method": "CreateAccountant",
+    "RelativePath": "api/auth/create-accountant",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "vm",
+        "Type": "SchoolProject.ViewModels.AccountantRegisterViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "SchoolProject.Web.Controllers.AuthController",
     "Method": "Login",
     "RelativePath": "api/auth/login",
@@ -626,16 +1320,68 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "SchoolProject.Web.Controllers.AuthController",
-    "Method": "Register",
-    "RelativePath": "api/auth/register",
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.SePayController",
+    "Method": "Checkout",
+    "RelativePath": "api/payment/sepay/checkout/{invoice}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "invoice",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.SePayController",
+    "Method": "CreatePayment",
+    "RelativePath": "api/payment/sepay/create/{feeId}",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "vm",
-        "Type": "SchoolProject.ViewModels.RegisterViewModel",
+        "Name": "feeId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.SePayController",
+    "Method": "Ipn",
+    "RelativePath": "api/payment/sepay/ipn",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.SePayController",
+    "Method": "Return",
+    "RelativePath": "api/payment/sepay/return",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.VnPayController",
+    "Method": "CreatePayment",
+    "RelativePath": "api/payment/vnpay/create/{feeId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "feeId",
+        "Type": "System.Int32",
         "IsRequired": true
       }
     ],
@@ -655,6 +1401,105 @@
     "ContainingType": "SchoolProject.Web.Area.Admin.Controller.VnPayController",
     "Method": "Return",
     "RelativePath": "api/payment/vnpay/return",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.ScheduleController",
+    "Method": "GetAll",
+    "RelativePath": "api/Schedule",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.ScheduleController",
+    "Method": "Add",
+    "RelativePath": "api/Schedule",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "vm",
+        "Type": "SchoolProject.ViewModels.CreateScheduleViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.ScheduleController",
+    "Method": "GetById",
+    "RelativePath": "api/Schedule/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.ScheduleController",
+    "Method": "Update",
+    "RelativePath": "api/Schedule/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "vm",
+        "Type": "SchoolProject.ViewModels.CreateScheduleViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.ScheduleController",
+    "Method": "Delete",
+    "RelativePath": "api/Schedule/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.ScheduleController",
+    "Method": "GetMyStudentSchedule",
+    "RelativePath": "api/Schedule/my",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Controllers.ScheduleController",
+    "Method": "GetMyTeacherSchedule",
+    "RelativePath": "api/Schedule/my-teaching",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -709,7 +1554,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.StudentAttendanceController",
+    "ContainingType": "SchoolProject.Web.Area.Student.Controllers.StudentAttendanceController",
     "Method": "GetAll",
     "RelativePath": "api/student/attendance",
     "HttpMethod": "GET",
@@ -859,9 +1704,14 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "vm",
-        "Type": "SchoolProject.ViewModels.CreateAssignmentViewModel",
-        "IsRequired": true
+        "Name": "AssignmentJson",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "File",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -906,9 +1756,14 @@
         "IsRequired": true
       },
       {
-        "Name": "vm",
-        "Type": "SchoolProject.ViewModels.CreateAssignmentViewModel",
-        "IsRequired": true
+        "Name": "AssignmentJson",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "File",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -1030,8 +1885,8 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "SchoolProject.Servies.TeacherAttendanceController",
-    "Method": "Add",
+    "ContainingType": "SchoolProject.Controllers.TeacherAttendanceController",
+    "Method": "AddAttendance",
     "RelativePath": "api/teacher/attendance",
     "HttpMethod": "POST",
     "IsController": true,
@@ -1046,8 +1901,8 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "SchoolProject.Servies.TeacherAttendanceController",
-    "Method": "Update",
+    "ContainingType": "SchoolProject.Controllers.TeacherAttendanceController",
+    "Method": "UpdateAttendance",
     "RelativePath": "api/teacher/attendance/{id}",
     "HttpMethod": "PUT",
     "IsController": true,
@@ -1067,15 +1922,31 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "SchoolProject.Servies.TeacherAttendanceController",
-    "Method": "GetByClassSession",
-    "RelativePath": "api/teacher/attendance/class-session/{id}",
+    "ContainingType": "SchoolProject.Controllers.TeacherAttendanceController",
+    "Method": "BulkAttendance",
+    "RelativePath": "api/teacher/attendance/bulk",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "vm",
+        "Type": "SchoolProject.ViewModels.BulkAttendanceViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Controllers.TeacherAttendanceController",
+    "Method": "GetBySchedule",
+    "RelativePath": "api/teacher/attendance/schedule/{scheduleId}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "id",
+        "Name": "scheduleId",
         "Type": "System.Int32",
         "IsRequired": true
       }
@@ -1083,7 +1954,81 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TeacherScoreController",
+    "ContainingType": "SchoolProject.Controllers.TeacherAttendanceController",
+    "Method": "GetStudentsForAttendance",
+    "RelativePath": "api/teacher/attendance/schedule/{scheduleId}/students",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "scheduleId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "date",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.GradeConfigurationController",
+    "Method": "Create",
+    "RelativePath": "api/teacher/grade-configurations",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "vm",
+        "Type": "SchoolProject.ViewModels.CreateGradeConfigurationViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.GradeConfigurationController",
+    "Method": "Update",
+    "RelativePath": "api/teacher/grade-configurations/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "vm",
+        "Type": "SchoolProject.ViewModels.CreateGradeConfigurationViewModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Web.Area.Admin.Controller.GradeConfigurationController",
+    "Method": "GetByClassSession",
+    "RelativePath": "api/teacher/grade-configurations/class-session/{classSessionId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "classSessionId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Controllers.TeacherScoreController",
     "Method": "GetAll",
     "RelativePath": "api/teacher/scores",
     "HttpMethod": "GET",
@@ -1093,7 +2038,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TeacherScoreController",
+    "ContainingType": "SchoolProject.Controllers.TeacherScoreController",
     "Method": "Add",
     "RelativePath": "api/teacher/scores",
     "HttpMethod": "POST",
@@ -1109,7 +2054,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TeacherScoreController",
+    "ContainingType": "SchoolProject.Controllers.TeacherScoreController",
     "Method": "Update",
     "RelativePath": "api/teacher/scores/{id}",
     "HttpMethod": "PUT",

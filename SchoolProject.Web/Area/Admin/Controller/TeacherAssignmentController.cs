@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SchoolProject.Servies;
 using SchoolProject.ViewModels;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace SchoolProject.Web.Area.Admin.Controller
 {
@@ -42,20 +43,56 @@ namespace SchoolProject.Web.Area.Admin.Controller
         // =====================================================
         // ADD ASSIGNMENT
         // =====================================================
-
         [HttpPost]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> Add(
-            [FromBody] CreateAssignmentViewModel vm)
+            [FromForm] CreateAssignmentWithFileRequest request)
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(request.AssignmentJson))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Thông tin Assignment không được để trống."
+                    });
+                }
+
+                var vm = JsonSerializer.Deserialize<CreateAssignmentViewModel>(
+                    request.AssignmentJson,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                if (vm == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Dữ liệu Assignment không hợp lệ."
+                    });
+                }
+
+                if (!TryValidateModel(vm))
+                {
+                    return BadRequest(ModelState);
+                }
+
                 await _assignmentService.AddAssignment(
                     GetUserId(),
-                    vm);
+                    vm,
+                    request.File);
 
                 return Ok(new
                 {
                     message = "Tạo Assignment thành công"
+                });
+            }
+            catch (JsonException)
+            {
+                return BadRequest(new
+                {
+                    message = "JSON Assignment không hợp lệ."
                 });
             }
             catch (Exception ex)
@@ -66,7 +103,6 @@ namespace SchoolProject.Web.Area.Admin.Controller
                 });
             }
         }
-
 
         // =====================================================
         // GET ALL ASSIGNMENTS
@@ -134,20 +170,57 @@ namespace SchoolProject.Web.Area.Admin.Controller
         // =====================================================
 
         [HttpPut("{id}")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(
-            int id,
-            [FromBody] CreateAssignmentViewModel vm)
+          int id,
+          [FromForm] CreateAssignmentWithFileRequest request)
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(request.AssignmentJson))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Thông tin Assignment không được để trống."
+                    });
+                }
+
+                var vm = JsonSerializer.Deserialize<CreateAssignmentViewModel>(
+                    request.AssignmentJson,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                if (vm == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Dữ liệu Assignment không hợp lệ."
+                    });
+                }
+
+                if (!TryValidateModel(vm))
+                {
+                    return BadRequest(ModelState);
+                }
+
                 await _assignmentService.UpdateAssignment(
                     GetUserId(),
                     id,
-                    vm);
+                    vm,
+                    request.File);
 
                 return Ok(new
                 {
                     message = "Cập nhật Assignment thành công"
+                });
+            }
+            catch (JsonException)
+            {
+                return BadRequest(new
+                {
+                    message = "JSON Assignment không hợp lệ."
                 });
             }
             catch (Exception ex)

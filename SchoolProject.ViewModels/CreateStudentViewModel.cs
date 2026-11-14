@@ -1,38 +1,51 @@
 ﻿using SchoolProject.Models;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SchoolProject.ViewModels
 {
     public class CreateStudentViewModel
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public DateTime DOB { get; set; }   
-        public DateTime DateOfJoin { get; set; }=DateTime.Now;
-        [Range(1, 4, ErrorMessage = "Năm học phải từ 1 đến 4.")]
+        [Required(ErrorMessage = "FirstName không được để trống.")]
+        [StringLength(100)]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "LastName không được để trống.")]
+        [StringLength(100)]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required]
+        public DateTime DOB { get; set; }
+
+        public DateTime DateOfJoin { get; set; }
+            = DateTime.Now;
+
+        // Năm học hiện tại của sinh viên
+        [Range(1, int.MaxValue,
+            ErrorMessage = "Năm học phải lớn hơn hoặc bằng 1.")]
         public int YearLevel { get; set; }
-        [Range(1, int.MaxValue, ErrorMessage = "MajorId không hợp lệ.")]
+
+        [Range(1, int.MaxValue,
+            ErrorMessage = "MajorId không hợp lệ.")]
         public int MajorId { get; set; }
-        public string? KeyId {  get; set; }
-        public string UserName { get; set; }
-        public string Email {  get; set; }
-        public string? Password { get; set; }
-        public Student ConvertModel(CreateStudentViewModel student)
+
+        [Required]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [MinLength(6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự.")]
+        public string Password { get; set; } = string.Empty;
+
+        public Student ConvertModel()
         {
             return new Student
             {
-                FirstName = student.FirstName,
-                LastName = student.LastName,
-                DOB = student.DOB,
-                DateOfJoin = student.DateOfJoin,
-                KeyId = student.KeyId,
-                MajorId = student.MajorId,
-                YearLevel = student.YearLevel
+                FirstName = FirstName,
+                LastName = LastName,
+                DOB = DOB,
+                DateOfJoin = DateOfJoin,
+                MajorId = MajorId,
+                YearLevel = YearLevel
             };
         }
     }

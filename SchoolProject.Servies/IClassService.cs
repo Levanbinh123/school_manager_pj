@@ -42,5 +42,18 @@ namespace SchoolProject.Servies
         Task<int> AddStudentsToClassSession(
             int classSessionId,
             List<int> studentList);
+         Task<List<ClassSessionViewModel>> GetAllClassSessions();
+     
+        Task ConfirmClassSession(int id);
+        Task CancelClassSession(int id);
+        Task<List<ClassSessionViewModel>>
+    GetClassesAwaitingPaymentApproval();
+
+        Task ApprovePaymentPeriod(int id);
+
+        Task<ClassSessionPaymentSummaryViewModel>
+            GetPaymentSummary(int classSessionId);
+
+       
     }
 }

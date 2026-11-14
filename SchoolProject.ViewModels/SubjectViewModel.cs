@@ -8,6 +8,7 @@ namespace SchoolProject.ViewModels
         public int Id { get; set; }
 
         public string Name { get; set; }
+        public int Credits {  get; set; }
 
         public SubjectViewModel()
         {
@@ -17,6 +18,7 @@ namespace SchoolProject.ViewModels
         {
             Id = subject.Id;
             Name = subject.Name;
+            Credits = subject.Credits;
         }
     }
 }

@@ -23,7 +23,20 @@ namespace SchoolProject.ViewModels
         public bool HasAttendance { get; set; }
 
         public int TotalSessions { get; set; }
+        public int MinStudents { get; set; } = 10;
+        public DateTime RegistrationStart { get; set; }
+        public DateTime RegistrationEnd { get; set; }
 
+        // Số sinh viên tối đa của lớp
+        public int MaxStudents { get; set; } = 40;
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public ClassSessionStatus Status { get; set; }
+
+        public int EnrolledCount { get; set; }
+        public DateTime? PaymentStartDate { get; set; }
+
+        public DateTime? PaymentEndDate { get; set; }
         public ClassSessionViewModel()
         {
         }
@@ -53,6 +66,12 @@ namespace SchoolProject.ViewModels
             HasAttendance = entity.HasAttendance;
 
             TotalSessions = entity.TotalSessions;
+            MinStudents = entity.MinStudents;
+            MaxStudents = entity.MaxStudents;
+            StartDate = entity.StartDate;
+            EndDate = entity.EndDate;
+            PaymentStartDate = entity.PaymentStartDate;
+            PaymentEndDate = entity.PaymentEndDate;
         }
     }
 }

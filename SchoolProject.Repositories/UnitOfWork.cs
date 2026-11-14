@@ -1,40 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace SchoolProject.Repositories
 {
-    public class UnitOfWork : IUnitOfWork, IDisposable 
+    public class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContext _context;
+
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
         }
-        private bool disposed = false;
-        public void Dispose() {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+
+        // Lấy Repository
+        public IGenericRepository<T> GenericRepository<T>()
+            where T : class
+        {
+            return new GenericRepository<T>(_context);
         }
-        private void Dispose(bool disposing) {
-            if (!this.disposed) {
-                if (disposing)
-                {
-                    _context.Dispose();
-                }
-            }
-            this.disposed = true;
-        }
-        public IGenericRepository<T> GenericRepository<T>() where T : class {
-            IGenericRepository<T> repo = new GenericRepository<T>(_context);
-            return repo;
-        }
+
+        // Lưu dữ liệu đồng bộ (giữ lại để tương thích code cũ)
         public void Save()
         {
             _context.SaveChanges();
         }
+
+        // Lưu dữ liệu bất đồng bộ
+        public async Task<int> SaveAsync(
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        // Bắt đầu Transaction
+        public async Task<IDbContextTransaction> BeginTransactionAsync(
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Database.BeginTransactionAsync(
+                cancellationToken);
+        }
     }
-    
 }

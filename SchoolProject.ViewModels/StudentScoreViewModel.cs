@@ -21,6 +21,9 @@ namespace SchoolProject.ViewModels
         public double TotalScore { get; set; }
 
         public string LetterGrade { get; set; }
+        public double GPA { get; set; }
+
+        public bool IsFinalized { get; set; }
 
         public StudentScoreViewModel()
         {
@@ -53,6 +56,8 @@ namespace SchoolProject.ViewModels
 
             LetterGrade =
                 score.LetterGrade;
+            GPA = score.GPA;
+            IsFinalized = score.IsFinalized;
         }
     }
 }

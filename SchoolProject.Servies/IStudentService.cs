@@ -4,23 +4,20 @@ namespace SchoolProject.Servies
 {
     public interface IStudentService
     {
-        Task AddStudent(
-            CreateStudentViewModel student);
+        Task AddStudent(CreateStudentViewModel student);
 
         PagedResult<StudentViewModel> GetAll(
             int pageNumber,
             int pageSize,
             string? search = null);
 
-        StudentViewModel? GetById(
-            int id);
+        Task<StudentViewModel?> GetById(int id);
 
         Task UpdateStudent(
             int id,
             CreateStudentViewModel student);
 
-        Task DeleteStudent(
-            int id);
+        Task DeleteStudent(int id);
 
         int GetAllStudents();
     }

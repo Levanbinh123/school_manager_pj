@@ -1,4 +1,5 @@
-﻿using SchoolProject.ViewModels;
+﻿using SchoolProject.Models;
+using SchoolProject.ViewModels;
 
 namespace SchoolProject.Servies
 {
@@ -34,5 +35,6 @@ namespace SchoolProject.Servies
         Task<FeeViewModel?> GetMyFee(
             string userId,
             int feeId);
+
     }
 }

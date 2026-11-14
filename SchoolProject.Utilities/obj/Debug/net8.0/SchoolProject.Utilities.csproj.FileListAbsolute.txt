@@ -15,3 +15,4 @@ C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\n
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\refint\SchoolProject.Utilities.dll
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\SchoolProject.Utilities.pdb
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\ref\SchoolProject.Utilities.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Utilities\obj\Debug\net8.0\SchoolProject.Utilities.sourcelink.json

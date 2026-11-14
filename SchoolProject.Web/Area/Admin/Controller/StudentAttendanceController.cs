@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchoolProject.Servies;
 using System.Security.Claims;
 
-namespace SchoolProject.Web.Area.Admin.Controller
+namespace SchoolProject.Web.Area.Student.Controllers
 {
     [ApiController]
     [Route("api/student/attendance")]
@@ -18,22 +19,20 @@ namespace SchoolProject.Web.Area.Admin.Controller
             _attendanceService = attendanceService;
         }
 
-        // GET /api/student/attendance
+        // GET: api/student/attendance
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
+            var userId = User.FindFirst(
+                ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
             try
             {
-                var userId =
-                    User.FindFirst(
-                        ClaimTypes.NameIdentifier)?.Value;
-
-                if (userId == null)
-                    return Unauthorized();
-
-                var result =
-                    await _attendanceService
-                        .GetStudentAttendance(userId);
+                var result = await _attendanceService
+                    .GetStudentAttendance(userId);
 
                 return Ok(result);
             }

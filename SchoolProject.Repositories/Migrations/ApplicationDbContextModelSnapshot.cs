@@ -30,8 +30,17 @@ namespace SchoolProject.Repositories.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Building")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("RoomType")
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
@@ -50,13 +59,43 @@ namespace SchoolProject.Repositories.Migrations
                     b.Property<int>("ClassId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("EnrolledCount")
+                        .HasColumnType("int");
+
                     b.Property<bool>("HasAttendance")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<int?>("HomeroomTeacherId")
                         .HasColumnType("int");
 
+                    b.Property<int>("MaxStudents")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinStudents")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PaymentEndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("PaymentStartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("RegistrationEnd")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("RegistrationStart")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int>("SessionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<int>("SubjectId")
@@ -228,17 +267,13 @@ namespace SchoolProject.Repositories.Migrations
                     b.Property<TimeSpan>("EndTime")
                         .HasColumnType("time(6)");
 
-                    b.Property<string>("Room")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time(6)");
 
-                    b.Property<int>("SubjectId")
+                    b.Property<int?>("SubjectId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TeacherId")
+                    b.Property<int?>("TeacherId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -250,6 +285,43 @@ namespace SchoolProject.Repositories.Migrations
                     b.HasIndex("TeacherId");
 
                     b.ToTable("Schedules");
+                });
+
+            modelBuilder.Entity("SchoolProject.Models.AcademicYear", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CloseConfirmation")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("CloseSignature")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ClosedByUserId")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AcademicYears");
                 });
 
             modelBuilder.Entity("SchoolProject.Models.ApplicationUser", b =>
@@ -342,6 +414,9 @@ namespace SchoolProject.Repositories.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AttachmentUrl")
+                        .HasColumnType("longtext");
+
                     b.Property<int>("ClassSessionId")
                         .HasColumnType("int");
 
@@ -351,12 +426,6 @@ namespace SchoolProject.Repositories.Migrations
 
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<int>("SubjectId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TeacherId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -368,10 +437,6 @@ namespace SchoolProject.Repositories.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClassSessionId");
-
-                    b.HasIndex("SubjectId");
-
-                    b.HasIndex("TeacherId");
 
                     b.ToTable("Assignments");
                 });
@@ -396,14 +461,15 @@ namespace SchoolProject.Repositories.Migrations
                     b.Property<bool>("Present")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int?>("SubjectId")
+                    b.Property<int>("ScheduleId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EnrollId");
 
-                    b.HasIndex("SubjectId");
+                    b.HasIndex("ScheduleId", "EnrollId", "Date")
+                        .IsUnique();
 
                     b.ToTable("Attendances");
                 });
@@ -445,7 +511,13 @@ namespace SchoolProject.Repositories.Migrations
                     b.Property<int?>("ClassSessionId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("RegisteredAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int>("SessionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<int>("StudentId")
@@ -485,14 +557,27 @@ namespace SchoolProject.Repositories.Migrations
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("FundsStatus")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("LateFee")
+                        .HasColumnType("decimal(65,30)");
+
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("PaymentMethod")
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime>("PaymentStartDate")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<decimal>("PricePerCredit")
                         .HasColumnType("decimal(65,30)");
+
+                    b.Property<DateTime?>("RefundedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("SessionId")
                         .HasColumnType("int");
@@ -507,8 +592,14 @@ namespace SchoolProject.Repositories.Migrations
                     b.Property<int>("SubjectId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(65,30)");
+
                     b.Property<string>("TransactionId")
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("TransferredAt")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
@@ -520,6 +611,47 @@ namespace SchoolProject.Repositories.Migrations
                         .IsUnique();
 
                     b.ToTable("Fees");
+                });
+
+            modelBuilder.Entity("SchoolProject.Models.GradeConfiguration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AttendanceWeight")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("ClassSessionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("FinalWeight")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal>("MidtermWeight")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal>("QuizWeight")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassSessionId")
+                        .IsUnique();
+
+                    b.ToTable("GradeConfiguration");
                 });
 
             modelBuilder.Entity("SchoolProject.Models.Major", b =>
@@ -534,9 +666,33 @@ namespace SchoolProject.Repositories.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int>("RequiredCredits")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudyDurationYears")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.ToTable("Majors");
+                });
+
+            modelBuilder.Entity("SchoolProject.Models.MajorSubject", b =>
+                {
+                    b.Property<int>("MajorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SubjectId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("YearLevel")
+                        .HasColumnType("int");
+
+                    b.HasKey("MajorId", "SubjectId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("MajorSubjects");
                 });
 
             modelBuilder.Entity("SchoolProject.Models.Notification", b =>
@@ -563,6 +719,64 @@ namespace SchoolProject.Repositories.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("SchoolProject.Models.SePayPayment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("FeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OrderInvoiceNumber")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("RefundedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("SePayOrderId")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TransactionId")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FeeId");
+
+                    b.HasIndex("OrderInvoiceNumber")
+                        .IsUnique();
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("sepaypayment", (string)null);
+                });
+
             modelBuilder.Entity("SchoolProject.Models.Session", b =>
                 {
                     b.Property<int>("Id")
@@ -571,8 +785,24 @@ namespace SchoolProject.Repositories.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AcademicYear")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("AcademicYearId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("End")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsAcademicYearClosed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsFinalSemester")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsPromoted")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("MaxCredits")
                         .HasColumnType("int");
@@ -581,10 +811,21 @@ namespace SchoolProject.Repositories.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime?>("PromotedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("SemesterNumber")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("Start")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("AcademicYearId");
 
                     b.ToTable("YearlySessions");
                 });
@@ -624,15 +865,25 @@ namespace SchoolProject.Repositories.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("ActualReturnDate")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<DateTime>("DOB")
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("DateOfJoin")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime?>("ExpectedReturnDate")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("KeyId")
                         .IsRequired()
@@ -640,10 +891,23 @@ namespace SchoolProject.Repositories.Migrations
 
                     b.Property<string>("LastName")
                         .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("LeaveReason")
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("LeaveStartDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("MajorId")
                         .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StatusReason")
+                        .HasColumnType("longtext");
 
                     b.Property<int>("YearLevel")
                         .HasColumnType("int");
@@ -653,6 +917,54 @@ namespace SchoolProject.Repositories.Migrations
                     b.HasIndex("MajorId");
 
                     b.ToTable("Students");
+                });
+
+            modelBuilder.Entity("SchoolProject.Models.StudentLeave", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ActualReturnDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("AdminNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("ExpectedReturnDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("StudentLeaves");
                 });
 
             modelBuilder.Entity("SchoolProject.Models.StudentScore", b =>
@@ -671,6 +983,12 @@ namespace SchoolProject.Repositories.Migrations
 
                     b.Property<double>("FinalScore")
                         .HasColumnType("double");
+
+                    b.Property<double>("GPA")
+                        .HasColumnType("double");
+
+                    b.Property<bool>("IsFinalized")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("LetterGrade")
                         .IsRequired()
@@ -693,6 +1011,35 @@ namespace SchoolProject.Repositories.Migrations
                     b.ToTable("StudentScores");
                 });
 
+            modelBuilder.Entity("SchoolProject.Models.StudyPeriod", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time(6)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("PeriodNumber")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("StudyPeriods");
+                });
+
             modelBuilder.Entity("SchoolProject.Models.Subject", b =>
                 {
                     b.Property<int>("Id")
@@ -704,40 +1051,13 @@ namespace SchoolProject.Repositories.Migrations
                     b.Property<int>("Credits")
                         .HasColumnType("int");
 
-                    b.Property<int>("MajorId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MajorId");
-
                     b.ToTable("Subjects");
-                });
-
-            modelBuilder.Entity("SchoolProject.Models.SubjectYear", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("SubjectId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("YearLevel")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SubjectId", "YearLevel")
-                        .IsUnique();
-
-                    b.ToTable("SubjectYears");
                 });
 
             modelBuilder.Entity("SchoolProject.Models.Submission", b =>
@@ -888,6 +1208,12 @@ namespace SchoolProject.Repositories.Migrations
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("RefundTransactionNo")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("RefundedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -1007,14 +1333,12 @@ namespace SchoolProject.Repositories.Migrations
                     b.HasOne("SchoolProject.Models.Subject", "Subject")
                         .WithMany()
                         .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SchoolProject.Models.Teacher", "Teacher")
                         .WithMany()
                         .HasForeignKey("TeacherId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ClassSession");
 
@@ -1048,23 +1372,7 @@ namespace SchoolProject.Repositories.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SchoolProject.Models.Subject", "Subject")
-                        .WithMany()
-                        .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SchoolProject.Models.Teacher", "Teacher")
-                        .WithMany()
-                        .HasForeignKey("TeacherId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("ClassSession");
-
-                    b.Navigation("Subject");
-
-                    b.Navigation("Teacher");
                 });
 
             modelBuilder.Entity("SchoolProject.Models.Attendance", b =>
@@ -1075,14 +1383,15 @@ namespace SchoolProject.Repositories.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SchoolProject.Models.Subject", "Subject")
+                    b.HasOne("Schedule", "Schedule")
                         .WithMany()
-                        .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Enroll");
 
-                    b.Navigation("Subject");
+                    b.Navigation("Schedule");
                 });
 
             modelBuilder.Entity("SchoolProject.Models.AuditLog", b =>
@@ -1157,6 +1466,65 @@ namespace SchoolProject.Repositories.Migrations
                     b.Navigation("Subject");
                 });
 
+            modelBuilder.Entity("SchoolProject.Models.GradeConfiguration", b =>
+                {
+                    b.HasOne("ClassSession", "ClassSession")
+                        .WithOne("GradeConfiguration")
+                        .HasForeignKey("SchoolProject.Models.GradeConfiguration", "ClassSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClassSession");
+                });
+
+            modelBuilder.Entity("SchoolProject.Models.MajorSubject", b =>
+                {
+                    b.HasOne("SchoolProject.Models.Major", "Major")
+                        .WithMany("MajorSubjects")
+                        .HasForeignKey("MajorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolProject.Models.Subject", "Subject")
+                        .WithMany("MajorSubjects")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Major");
+
+                    b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("SchoolProject.Models.SePayPayment", b =>
+                {
+                    b.HasOne("SchoolProject.Models.Fee", "Fee")
+                        .WithMany("SePayPayments")
+                        .HasForeignKey("FeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolProject.Models.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Fee");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("SchoolProject.Models.Session", b =>
+                {
+                    b.HasOne("SchoolProject.Models.AcademicYear", "AcademicYearInfo")
+                        .WithMany("Sessions")
+                        .HasForeignKey("AcademicYearId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AcademicYearInfo");
+                });
+
             modelBuilder.Entity("SchoolProject.Models.SessionSubject", b =>
                 {
                     b.HasOne("SchoolProject.Models.Session", "Session")
@@ -1187,6 +1555,17 @@ namespace SchoolProject.Repositories.Migrations
                     b.Navigation("Major");
                 });
 
+            modelBuilder.Entity("SchoolProject.Models.StudentLeave", b =>
+                {
+                    b.HasOne("SchoolProject.Models.Student", "Student")
+                        .WithMany("StudentLeaves")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("SchoolProject.Models.StudentScore", b =>
                 {
                     b.HasOne("SchoolProject.Models.Enroll", "Enroll")
@@ -1196,28 +1575,6 @@ namespace SchoolProject.Repositories.Migrations
                         .IsRequired();
 
                     b.Navigation("Enroll");
-                });
-
-            modelBuilder.Entity("SchoolProject.Models.Subject", b =>
-                {
-                    b.HasOne("SchoolProject.Models.Major", "Major")
-                        .WithMany("Subjects")
-                        .HasForeignKey("MajorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Major");
-                });
-
-            modelBuilder.Entity("SchoolProject.Models.SubjectYear", b =>
-                {
-                    b.HasOne("SchoolProject.Models.Subject", "Subject")
-                        .WithMany("SubjectYears")
-                        .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("SchoolProject.Models.Submission", b =>
@@ -1294,6 +1651,13 @@ namespace SchoolProject.Repositories.Migrations
             modelBuilder.Entity("ClassSession", b =>
                 {
                     b.Navigation("Enrolls");
+
+                    b.Navigation("GradeConfiguration");
+                });
+
+            modelBuilder.Entity("SchoolProject.Models.AcademicYear", b =>
+                {
+                    b.Navigation("Sessions");
                 });
 
             modelBuilder.Entity("SchoolProject.Models.Assignment", b =>
@@ -1310,14 +1674,16 @@ namespace SchoolProject.Repositories.Migrations
 
             modelBuilder.Entity("SchoolProject.Models.Fee", b =>
                 {
+                    b.Navigation("SePayPayments");
+
                     b.Navigation("VnPayPayments");
                 });
 
             modelBuilder.Entity("SchoolProject.Models.Major", b =>
                 {
-                    b.Navigation("Students");
+                    b.Navigation("MajorSubjects");
 
-                    b.Navigation("Subjects");
+                    b.Navigation("Students");
                 });
 
             modelBuilder.Entity("SchoolProject.Models.Session", b =>
@@ -1332,11 +1698,13 @@ namespace SchoolProject.Repositories.Migrations
             modelBuilder.Entity("SchoolProject.Models.Student", b =>
                 {
                     b.Navigation("Enrolls");
+
+                    b.Navigation("StudentLeaves");
                 });
 
             modelBuilder.Entity("SchoolProject.Models.Subject", b =>
                 {
-                    b.Navigation("SubjectYears");
+                    b.Navigation("MajorSubjects");
                 });
 
             modelBuilder.Entity("SchoolProject.Models.Teacher", b =>

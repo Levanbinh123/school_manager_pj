@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SchoolProject.ViewModels
+﻿namespace SchoolProject.ViewModels
 {
     public class ScheduleViewModel
     {
@@ -12,32 +6,24 @@ namespace SchoolProject.ViewModels
 
         public int ClassSessionId { get; set; }
 
-        public int SubjectId { get; set; }
+        public int? SubjectId { get; set; }
+        public string? SubjectName { get; set; }
 
-        public int TeacherId { get; set; }
+        public int ClassId { get; set; }
+        public string? ClassName { get; set; }
+
+        public int? TeacherId { get; set; }
+        public string? TeacherName { get; set; }
 
         public DayOfWeek Day { get; set; }
 
         public TimeSpan StartTime { get; set; }
-
         public TimeSpan EndTime { get; set; }
-
-        public string Room { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         public ScheduleViewModel()
         {
-        }
-
-        public ScheduleViewModel(Schedule schedule)
-        {
-            Id = schedule.Id;
-            ClassSessionId = schedule.ClassSessionId;
-            SubjectId = schedule.SubjectId;
-            TeacherId = schedule.TeacherId;
-            Day = schedule.Day;
-            StartTime = schedule.StartTime;
-            EndTime = schedule.EndTime;
-            Room = schedule.Room;
         }
     }
 }

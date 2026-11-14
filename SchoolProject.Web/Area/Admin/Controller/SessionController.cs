@@ -1,92 +1,180 @@
-﻿    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-    using SchoolProject.Servies;
-    using SchoolProject.ViewModels;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SchoolProject.Servies;
+using SchoolProject.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
-    namespace SchoolProject.Web.Controllers
+namespace SchoolProject.Web.Controllers
+{
+    [Route("api/admin/sessions")]
+    [ApiController]
+    [Authorize(Roles = "Admin")]
+    public class SessionController : ControllerBase
     {
-        [ApiController]
-        [Route("api/admin/[controller]")]
-        [Authorize(Roles = "Admin")]
-        public class SessionApiController : ControllerBase
+        private readonly ISessionService _sessionService;
+
+        public SessionController(ISessionService sessionService)
         {
-            private readonly ISessionService _sessionService;
+            _sessionService = sessionService;
+        }
 
-            public SessionApiController(
-                ISessionService sessionService)
+        // GET: api/admin/sessions
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            var result = _sessionService.GetAll();
+
+            return Ok(result);
+        }
+
+        // GET: api/admin/sessions/1
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var result = await _sessionService.GetById(id);
+
+            if (result == null)
             {
-                _sessionService = sessionService;
+                return NotFound(new
+                {
+                    message = "Không tìm thấy học kỳ."
+                });
             }
 
-            // GET: api/admin/SessionApi?pageNumber=1&pageSize=10
-            [HttpGet]
-            public IActionResult GetAll(
-                int pageNumber = 1,
-                int pageSize = 10)
+            return Ok(result);
+        }
+
+        // GET: api/admin/sessions/by-academic-year/1
+        [HttpGet("by-academic-year/{academicYearId:int}")]
+        public IActionResult GetByAcademicYear(int academicYearId)
+        {
+            var result =
+                _sessionService.GetByAcademicYear(academicYearId);
+
+            return Ok(result);
+        }
+
+        // POST: api/admin/sessions
+        [HttpPost]
+        public async Task<IActionResult> Create(
+            [FromBody] CreateSessionViewModel vm)
+        {
+            try
             {
-                var result =
-                    _sessionService.GetAll(
-                        pageNumber,
-                        pageSize);
+                var result = await _sessionService.Add(vm);
+
+                return CreatedAtAction(
+                    nameof(GetById),
+                    new { id = result.Id },
+                    result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // PUT: api/admin/sessions/1
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(
+            int id,
+            [FromBody] UpdateSessionViewModel vm)
+        {
+            try
+            {
+                var result = await _sessionService.Update(id, vm);
 
                 return Ok(result);
             }
-
-            // GET: api/admin/SessionApi/all
-            [HttpGet("all")]
-            public IActionResult GetAll()
+            catch (KeyNotFoundException ex)
             {
-                var result =
-                    _sessionService.GetAll();
-
-                return Ok(result);
+                return NotFound(new { message = ex.Message });
             }
-
-            // GET: api/admin/SessionApi/1
-            [HttpGet("{sessionId}")]
-            public async Task<IActionResult> GetById(
-                int sessionId)
+            catch (ArgumentException ex)
             {
-                var result =
-                    await _sessionService.GetById(sessionId);
-
-                if (result == null)
-                {
-                    return NotFound(new
-                    {
-                        message = "Không tìm thấy Session"
-                    });
-                }
-
-                return Ok(result);
+                return BadRequest(new { message = ex.Message });
             }
-
-            // POST: api/admin/SessionApi
-            [HttpPost]
-            public async Task<IActionResult> Add(
-                [FromBody] CreateSessionViewModel vm)
+            catch (InvalidOperationException ex)
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
-                try
-                {
-                    await _sessionService.Add(vm);
+        // PUT: api/admin/sessions/1/activate
+        [HttpPut("{id:int}/activate")]
+        public async Task<IActionResult> Activate(int id)
+        {
+            try
+            {
+                await _sessionService.Activate(id);
 
-                    return Ok(new
-                    {
-                        message = "Thêm Session thành công"
-                    });
-                }
-                catch (Exception ex)
+                return Ok(new
                 {
-                    return BadRequest(new
-                    {
-                        message = ex.Message
-                    });
-                }
+                    message = "Kích hoạt học kỳ thành công."
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // PUT: api/admin/sessions/1/complete
+        [HttpPut("{id:int}/complete")]
+        public async Task<IActionResult> Complete(int id)
+        {
+            try
+            {
+                await _sessionService.Complete(id);
+
+                return Ok(new
+                {
+                    message = "Hoàn thành học kỳ thành công."
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // DELETE: api/admin/sessions/1
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                await _sessionService.Delete(id);
+
+                return Ok(new
+                {
+                    message = "Xóa học kỳ thành công."
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
     }
+}

@@ -1,9 +1,4 @@
 ﻿using SchoolProject.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SchoolProject.Servies
 {
@@ -13,18 +8,23 @@ namespace SchoolProject.Servies
             string userId,
             CreateAttendanceViewModel vm);
 
-        Task<List<AttendanceViewModel>>
-            GetByClassSession(
-                string userId,
-                int classSessionId);
+        Task<List<AttendanceViewModel>> GetBySchedule(
+            string userId,
+            int scheduleId);
 
-        Task<List<AttendanceViewModel>>
-            GetStudentAttendance(
-                string userId);
+        Task<List<AttendanceViewModel>> GetStudentAttendance(
+            string userId);
 
         Task UpdateAttendance(
             string userId,
             int id,
             CreateAttendanceViewModel vm);
+        Task<BulkAttendanceResultViewModel> BulkAttendance(
+           string userId,
+           BulkAttendanceViewModel vm);
+        Task<List<AttendanceStudentViewModel>> GetStudentsForAttendance(
+    string userId,
+    int scheduleId,
+    DateTime date);
     }
 }

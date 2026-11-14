@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace SchoolProject.Models
@@ -15,7 +16,7 @@ namespace SchoolProject.Models
 
         // Giá 1 tín chỉ trong năm học đó
         public decimal PricePerCredit { get; set; }
-
+        [JsonIgnore]
         public Session Session { get; set; } = null!;
     }
 }

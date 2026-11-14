@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SchoolProject.Models;
+using System.Reflection.Emit;
 
 namespace SchoolProject.Repositories
 {
@@ -15,17 +16,20 @@ namespace SchoolProject.Repositories
         // =====================================================
         // DbSets
         // =====================================================
-
+        public GradeConfiguration? GradeConfiguration { get; set; }
+        public DbSet<SePayPayment> SePayPayments { get; set; }
+        public DbSet<StudyPeriod> StudyPeriods { get; set; }
         public DbSet<TuitionRate> sTuitionRates { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
         public DbSet<Session> YearlySessions { get; set; }
-       // public DbSet<Grade> Grades { get; set; }
-       // public DbSet<AssignGrade> AssignGrades { get; set; }
+        // public DbSet<Grade> Grades { get; set; }
+        // public DbSet<AssignGrade> AssignGrades { get; set; }
+        public DbSet<StudentLeave> StudentLeaves { get; set; }
         public DbSet<TeacherSession> TeacherSessions { get; set; }
         public DbSet<Enroll> Enrolls { get; set; }
         public DbSet<Subject> Subjects { get; set; }
-      //  public DbSet<GradeSubject> GradeSubjects { get; set; }
+        //  public DbSet<GradeSubject> GradeSubjects { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<StudentScore> StudentScores { get; set; }
         public DbSet<Assignment> Assignments { get; set; }
@@ -37,14 +41,72 @@ namespace SchoolProject.Repositories
         public DbSet<ClassSession> ClassSessions { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Major> Majors { get; set; }
-        public DbSet<SubjectYear> SubjectYears { get; set; }
+        public DbSet<MajorSubject> MajorSubjects { get; set; }
+        // public DbSet<SubjectYear> SubjectYears { get; set; }
         public DbSet<SessionSubject> SessionSubjects { get; set; }
+        public DbSet<AcademicYear> AcademicYears { get; set; }
         public DbSet<VnPayPayment> VnPayPayments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+            builder.Entity<AcademicYear>()
+    .Property(x => x.CloseSignature)
+    .HasColumnType("longtext");
+            builder.Entity<AcademicYear>(entity =>
+             {
+                 entity.HasKey(x => x.Id);
 
+
+
+                 entity.HasMany(x => x.Sessions)
+                     .WithOne(x => x.AcademicYearInfo)
+                     .HasForeignKey(x => x.AcademicYearId)
+                     .OnDelete(DeleteBehavior.Restrict);
+             });
+            //trong so tinh diem
+            builder.Entity<GradeConfiguration>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.HasIndex(x => x.ClassSessionId)
+                      .IsUnique();
+
+                entity.Property(x => x.AttendanceWeight)
+                      .HasPrecision(5, 2);
+
+                entity.Property(x => x.QuizWeight)
+                      .HasPrecision(5, 2);
+
+                entity.Property(x => x.MidtermWeight)
+                      .HasPrecision(5, 2);
+
+                entity.Property(x => x.FinalWeight)
+                      .HasPrecision(5, 2);
+
+                entity.HasOne(x => x.ClassSession)
+                      .WithOne(x => x.GradeConfiguration)
+                      .HasForeignKey<GradeConfiguration>(
+                          x => x.ClassSessionId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+            //bao luu
+            builder.Entity<StudentLeave>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Reason)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.Property(x => x.Status)
+                    .HasConversion<int>();
+
+                entity.HasOne(x => x.Student)
+                    .WithMany(x => x.StudentLeaves)
+                    .HasForeignKey(x => x.StudentId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
             // =====================================================
             // Student -> Major
             // =====================================================
@@ -59,29 +121,25 @@ namespace SchoolProject.Repositories
             // Subject -> Major
             // =====================================================
 
-            builder.Entity<Subject>()
+            builder.Entity<MajorSubject>()
+                .HasKey(x => new { x.MajorId, x.SubjectId });
+
+            builder.Entity<MajorSubject>()
                 .HasOne(x => x.Major)
-                .WithMany(x => x.Subjects)
+                .WithMany(x => x.MajorSubjects)
                 .HasForeignKey(x => x.MajorId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<MajorSubject>()
+                .HasOne(x => x.Subject)
+                .WithMany(x => x.MajorSubjects)
+                .HasForeignKey(x => x.SubjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             // =====================================================
             // SubjectYear -> Subject
             // =====================================================
-
-            builder.Entity<SubjectYear>()
-                .HasOne(x => x.Subject)
-                .WithMany(x => x.SubjectYears)
-                .HasForeignKey(x => x.SubjectId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.Entity<SubjectYear>()
-                .HasIndex(x => new
-                {
-                    x.SubjectId,
-                    x.YearLevel
-                })
-                .IsUnique();
 
             // =====================================================
             // Fee -> Student
@@ -262,25 +320,26 @@ namespace SchoolProject.Repositories
             //        x.SubjectId
             //    });
 
+            builder.Entity<Attendance>()
+            .HasOne(x => x.Schedule)
+            .WithMany()
+            .HasForeignKey(x => x.ScheduleId)
+            .OnDelete(DeleteBehavior.Restrict);
+
             // =====================================================
-            // Attendance -> Enroll
+            // Attendance unique
+            // Một sinh viên chỉ có một kết quả điểm danh
+            // trong cùng một lịch học và ngày học
             // =====================================================
 
             builder.Entity<Attendance>()
-                .HasOne(x => x.Enroll)
-                .WithMany(x => x.Attendances)
-                .HasForeignKey(x => x.EnrollId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // =====================================================
-            // Attendance -> Subject
-            // =====================================================
-
-            builder.Entity<Attendance>()
-                .HasOne(x => x.Subject)
-                .WithMany()
-                .HasForeignKey(x => x.SubjectId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .HasIndex(x => new
+                {
+                    x.ScheduleId,
+                    x.EnrollId,
+                    x.Date
+                })
+                .IsUnique();
 
             // =====================================================
             // StudentScore
@@ -290,7 +349,7 @@ namespace SchoolProject.Repositories
                 .HasIndex(x => new
                 {
                     x.EnrollId,
-                   
+
                 })
                 .IsUnique();
 
@@ -311,25 +370,6 @@ namespace SchoolProject.Repositories
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // =====================================================
-            // Assignment -> Subject
-            // =====================================================
-
-            builder.Entity<Assignment>()
-                .HasOne(x => x.Subject)
-                .WithMany()
-                .HasForeignKey(x => x.SubjectId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // =====================================================
-            // Assignment -> Teacher
-            // =====================================================
-
-            builder.Entity<Assignment>()
-                .HasOne(x => x.Teacher)
-                .WithMany()
-                .HasForeignKey(x => x.TeacherId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             // =====================================================
             // Assignment -> ClassSession
@@ -373,17 +413,7 @@ namespace SchoolProject.Repositories
                 })
                 .IsUnique();
 
-            // =====================================================
-            // Class -> Grade
-            // =====================================================
-
-            //builder.Entity<Class>()
-            //    .HasOne(x => x.Grade)
-            //    .WithMany(x => x.Classes)
-            //    .HasForeignKey(x => x.GradeId)
-            //    .OnDelete(DeleteBehavior.Restrict);
-
-            // =====================================================
+       
             // ClassSession -> Class
             // =====================================================
 
@@ -519,6 +549,42 @@ namespace SchoolProject.Repositories
                     x.SubjectId
                 })
                 .IsUnique();
+            ///payment 2
+            // =====================================================
+            // SePayPayment
+            // =====================================================
+
+            builder.Entity<SePayPayment>(entity =>
+            {
+                // Tên bảng đã tồn tại trong MySQL
+                entity.ToTable("sepaypayment");
+
+                entity.HasKey(x => x.Id);
+
+                entity.HasIndex(x => x.OrderInvoiceNumber)
+                    .IsUnique();
+
+                entity.Property(x => x.OrderInvoiceNumber)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(x => x.Amount)
+                    .HasPrecision(18, 2);
+
+                entity.Property(x => x.Status)
+                    .IsRequired()
+                    .HasMaxLength(30);
+
+                entity.HasOne(x => x.Fee)
+                    .WithMany(x => x.SePayPayments)
+                    .HasForeignKey(x => x.FeeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Student)
+                    .WithMany()
+                    .HasForeignKey(x => x.StudentId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
         }
     }
 }

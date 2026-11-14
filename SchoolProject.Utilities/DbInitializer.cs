@@ -1,7 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 using SchoolProject.Models;
 using SchoolProject.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -34,7 +31,7 @@ namespace SchoolProject.Utilities
             if (!_roleManager.RoleExistsAsync(WebSiteRole.Website_Admin).GetAwaiter().GetResult())
             {
                 _roleManager.CreateAsync(new IdentityRole(WebSiteRole.Website_Admin)).GetAwaiter().GetResult();
-                _roleManager.CreateAsync(new IdentityRole(WebSiteRole.WebSite_Employee)).GetAwaiter().GetResult();
+                _roleManager.CreateAsync(new IdentityRole(WebSiteRole.Website_Accountant)).GetAwaiter().GetResult();
                 _roleManager.CreateAsync(new IdentityRole(WebSiteRole.Website_Student)).GetAwaiter().GetResult();
                 _roleManager.CreateAsync(new IdentityRole(WebSiteRole.Website_Teacher)).GetAwaiter().GetResult();
                 _userManager.CreateAsync(

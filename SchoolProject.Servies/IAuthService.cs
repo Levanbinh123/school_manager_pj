@@ -4,7 +4,7 @@ namespace SchoolProject.Servies
 {
     public interface IAuthService
     {
-        Task<string> Register(RegisterViewModel vm);
+       
 
         Task<LoginResponseViewModel?> Login(LoginViewModel vm);
 
@@ -13,5 +13,7 @@ namespace SchoolProject.Servies
         string GetUserIdFromJwt();
         Task<int> GetStudentIdByUserId(
             string userId);
+        // Tạo tài khoản Accountant
+        Task<string> CreateAccountant(AccountantRegisterViewModel vm);
     }
 }

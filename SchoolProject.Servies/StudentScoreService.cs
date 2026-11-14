@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
 using SchoolProject.Models;
 using SchoolProject.Repositories;
 using SchoolProject.ViewModels;
@@ -14,7 +14,6 @@ namespace SchoolProject.Servies
             _unitOfWork = unitOfWork;
         }
 
-
         // ============================================================
         // 1. TEACHER - GET ALL SCORES
         // ============================================================
@@ -22,83 +21,47 @@ namespace SchoolProject.Servies
         public async Task<List<StudentScoreViewModel>>
             GetTeacherScores(string userId)
         {
-            var teacherRepository =
-                _unitOfWork.GenericRepository<Teacher>();
-
-            var scoreRepository =
-                _unitOfWork.GenericRepository<StudentScore>();
-
-            var enrollRepository =
-                _unitOfWork.GenericRepository<Enroll>();
-
-            var classSessionRepository =
-                _unitOfWork.GenericRepository<ClassSession>();
-
-
-            var teacher =
-                teacherRepository
-                    .GetAll()
-                    .FirstOrDefault(x =>
-                        x.KeyId == userId);
+            var teacher = _unitOfWork
+                .GenericRepository<Teacher>()
+                .GetAll()
+                .FirstOrDefault(x => x.KeyId == userId);
 
             if (teacher == null)
-            {
-                throw new Exception(
-                    "Không tìm thấy Teacher.");
-            }
+                throw new Exception("Không tìm thấy Teacher.");
 
+            var scores = _unitOfWork
+                .GenericRepository<StudentScore>()
+                .GetAll()
+                .ToList();
 
-            var scores =
-                scoreRepository
-                    .GetAll()
-                    .ToList();
-
-
-            var result =
-                new List<StudentScoreViewModel>();
-
+            var result = new List<StudentScoreViewModel>();
 
             foreach (var score in scores)
             {
-                var enroll =
-                    enrollRepository
-                        .GetById(score.EnrollId);
+                var enroll = _unitOfWork
+                    .GenericRepository<Enroll>()
+                    .GetById(score.EnrollId);
 
-                if (enroll == null)
+                if (enroll == null ||
+                    !enroll.ClassSessionId.HasValue)
                     continue;
 
-                if (!enroll.ClassSessionId.HasValue)
+                var classSession = _unitOfWork
+                    .GenericRepository<ClassSession>()
+                    .GetById(enroll.ClassSessionId.Value);
+
+                if (classSession == null ||
+                    classSession.HomeroomTeacherId != teacher.Id)
                     continue;
 
-
-                var classSession =
-                    classSessionRepository
-                        .GetById(
-                            enroll.ClassSessionId.Value);
-
-                if (classSession == null)
-                    continue;
-
-
-                if (classSession.HomeroomTeacherId
-                    != teacher.Id)
+                result.Add(new StudentScoreViewModel(score)
                 {
-                    continue;
-                }
-
-
-                result.Add(
-                    new StudentScoreViewModel(score)
-                    {
-                        SubjectId =
-                            enroll.SubjectId
-                    });
+                    SubjectId = classSession.SubjectId
+                });
             }
-
 
             return result;
         }
-
 
         // ============================================================
         // 2. TEACHER - ADD SCORE
@@ -108,409 +71,146 @@ namespace SchoolProject.Servies
             string userId,
             CreateStudentScoreViewModel vm)
         {
-            if (vm == null)
-            {
+            if (vm == null || vm.EnrollId <= 0)
+                throw new Exception("Dữ liệu không hợp lệ.");
+
+            var teacher = GetTeacher(userId);
+
+            var enroll = _unitOfWork
+                .GenericRepository<Enroll>()
+                .GetById(vm.EnrollId);
+
+            if (enroll == null)
+                throw new Exception("Không tìm thấy Enroll.");
+
+            if (enroll.Status != EnrollStatus.Approved)
                 throw new Exception(
-                    "Dữ liệu không hợp lệ.");
-            }
+                    "Chỉ được nhập điểm cho sinh viên đã được duyệt vào lớp.");
 
-            if (vm.EnrollId <= 0)
-            {
-                throw new Exception(
-                    "EnrollId không hợp lệ.");
-            }
+            var classSession = GetClassSession(enroll);
 
-
-            var teacherRepository =
-                _unitOfWork.GenericRepository<Teacher>();
-
-            var enrollRepository =
-                _unitOfWork.GenericRepository<Enroll>();
+            ValidateTeacherPermission(teacher, classSession);
+            ValidateEnrollSubject(enroll, classSession);
+            ValidateSessionEnded(classSession);
 
             var scoreRepository =
                 _unitOfWork.GenericRepository<StudentScore>();
 
-            var classSessionRepository =
-                _unitOfWork.GenericRepository<ClassSession>();
-
-            var sessionRepository =
-                _unitOfWork.GenericRepository<Session>();
-
-
-            // --------------------------------------------------------
-            // Teacher
-            // --------------------------------------------------------
-
-            var teacher =
-                teacherRepository
-                    .GetAll()
-                    .FirstOrDefault(x =>
-                        x.KeyId == userId);
-
-            if (teacher == null)
-            {
-                throw new Exception(
-                    "Không tìm thấy Teacher.");
-            }
-
-
-            // --------------------------------------------------------
-            // Enroll
-            // --------------------------------------------------------
-
-            var enroll =
-                enrollRepository
-                    .GetById(vm.EnrollId);
-
-            if (enroll == null)
-            {
-                throw new Exception(
-                    "Không tìm thấy Enroll.");
-            }
-
-
-            // --------------------------------------------------------
-            // ClassSession
-            // --------------------------------------------------------
-
-            if (!enroll.ClassSessionId.HasValue)
-            {
-                throw new Exception(
-                    "Enroll chưa được gán vào ClassSession.");
-            }
-
-
-            var classSession =
-                classSessionRepository
-                    .GetById(
-                        enroll.ClassSessionId.Value);
-
-            if (classSession == null)
-            {
-                throw new Exception(
-                    "Không tìm thấy ClassSession.");
-            }
-
-
-            // --------------------------------------------------------
-            // Teacher phải dạy ClassSession
-            // --------------------------------------------------------
-
-            if (classSession.HomeroomTeacherId
-                != teacher.Id)
-            {
-                throw new UnauthorizedAccessException(
-                    "Bạn không có quyền tổng kết điểm cho lớp học này.");
-            }
-
-
-            // --------------------------------------------------------
-            // Subject phải khớp
-            // --------------------------------------------------------
-
-            if (enroll.SubjectId
-                != classSession.SubjectId)
-            {
-                throw new Exception(
-                    "Subject của Enroll không khớp với ClassSession.");
-            }
-
-
-            // --------------------------------------------------------
-            // Session
-            // --------------------------------------------------------
-
-            var session =
-                sessionRepository
-                    .GetById(classSession.SessionId);
-
-            if (session == null)
-            {
-                throw new Exception(
-                    "Không tìm thấy Session.");
-            }
-
-
-            // --------------------------------------------------------
-            // Chỉ tổng kết sau khi Session kết thúc
-            // --------------------------------------------------------
-
-            if (DateTime.Now < session.End)
-            {
-                throw new Exception(
-                    $"Chưa thể tổng kết điểm. " +
-                    $"Session kết thúc vào " +
-                    $"{session.End:dd/MM/yyyy HH:mm}.");
-            }
-
-
-            // --------------------------------------------------------
-            // Kiểm tra đã có StudentScore chưa
-            // --------------------------------------------------------
-
-            var exists =
-                scoreRepository
-                    .GetAll()
-                    .Any(x =>
-                        x.EnrollId == enroll.Id);
+            bool exists = scoreRepository.GetAll()
+                .Any(x => x.EnrollId == enroll.Id);
 
             if (exists)
-            {
                 throw new Exception(
-                    "Sinh viên này đã được tổng kết điểm.");
-            }
+                    "Sinh viên này đã có kết quả tổng kết.");
 
-
-            // --------------------------------------------------------
-            // Tính điểm
-            // --------------------------------------------------------
-
-            var calculated =
-                await CalculateStudentScore(
-                    enroll,
-                    classSession);
-
-
-            // --------------------------------------------------------
-            // Tạo StudentScore
-            // --------------------------------------------------------
+            var calculated = await CalculateStudentScore(
+                enroll,
+                classSession);
 
             var score = new StudentScore
             {
-                EnrollId =
-                    enroll.Id,
+                EnrollId = enroll.Id,
 
-                AttendanceScore =
-                    calculated.AttendanceScore,
+                AttendanceScore = calculated.AttendanceScore,
+                QuizScore = calculated.AssignmentAverage,
+                MidtermScore = calculated.MidtermExamScore,
+                FinalScore = calculated.FinalExamScore,
 
-                // Giữ QuizScore theo Model hiện tại.
-                // Giá trị này lưu Assignment Average.
-                QuizScore =
-                    calculated.AssignmentAverage,
+                TotalScore = calculated.TotalScore,
+                LetterGrade = calculated.LetterGrade,
+                GPA = calculated.GPA,
 
-                MidtermScore = 0,
-
-                FinalScore =
-                    calculated.FinalExamScore,
-
-                TotalScore =
-                    calculated.TotalScore,
-
-                LetterGrade =
-                    calculated.LetterGrade
+                // Chưa chốt điểm
+                IsFinalized = false
             };
-
 
             await scoreRepository.AddAsync(score);
 
+            // Chưa cập nhật Enroll thành Completed/Failed.
+            // Chờ giáo viên kiểm tra và chốt điểm.
+
             _unitOfWork.Save();
         }
-
 
         // ============================================================
         // 3. TEACHER - UPDATE SCORE
         // ============================================================
 
         public async Task UpdateScore(
-            string userId,
-            int id,
-            CreateStudentScoreViewModel vm)
+       string userId,
+       int id,
+       CreateStudentScoreViewModel vm)
         {
-            if (vm == null)
-            {
-                throw new Exception(
-                    "Dữ liệu không hợp lệ.");
-            }
+            if (vm == null || vm.EnrollId <= 0)
+                throw new Exception("Dữ liệu không hợp lệ.");
 
-            if (vm.EnrollId <= 0)
-            {
-                throw new Exception(
-                    "EnrollId không hợp lệ.");
-            }
-
-
-            var teacherRepository =
-                _unitOfWork.GenericRepository<Teacher>();
+            var teacher = GetTeacher(userId);
 
             var scoreRepository =
                 _unitOfWork.GenericRepository<StudentScore>();
 
-            var enrollRepository =
-                _unitOfWork.GenericRepository<Enroll>();
-
-            var classSessionRepository =
-                _unitOfWork.GenericRepository<ClassSession>();
-
-            var sessionRepository =
-                _unitOfWork.GenericRepository<Session>();
-
-
-            // --------------------------------------------------------
-            // Teacher
-            // --------------------------------------------------------
-
-            var teacher =
-                teacherRepository
-                    .GetAll()
-                    .FirstOrDefault(x =>
-                        x.KeyId == userId);
-
-            if (teacher == null)
-            {
-                throw new Exception(
-                    "Không tìm thấy Teacher.");
-            }
-
-
-            // --------------------------------------------------------
-            // StudentScore
-            // --------------------------------------------------------
-
-            var score =
-                scoreRepository
-                    .GetById(id);
+            var score = scoreRepository.GetById(id);
 
             if (score == null)
+                throw new Exception("Không tìm thấy StudentScore.");
+
+            // Chỉ cho phép cập nhật bản nháp.
+            if (score.IsFinalized)
             {
                 throw new Exception(
-                    "Không tìm thấy StudentScore.");
+                    "Điểm đã được chốt. Không được phép chỉnh sửa.");
             }
 
-
-            // --------------------------------------------------------
-            // Enroll
-            // --------------------------------------------------------
-
-            var enroll =
-                enrollRepository
-                    .GetById(vm.EnrollId);
+            var enroll = _unitOfWork
+                .GenericRepository<Enroll>()
+                .GetById(vm.EnrollId);
 
             if (enroll == null)
-            {
-                throw new Exception(
-                    "Không tìm thấy Enroll.");
-            }
-
-
-            // --------------------------------------------------------
-            // Score phải thuộc Enroll
-            // --------------------------------------------------------
+                throw new Exception("Không tìm thấy Enroll.");
 
             if (score.EnrollId != enroll.Id)
-            {
                 throw new Exception(
                     "StudentScore không thuộc Enroll này.");
-            }
 
-
-            // --------------------------------------------------------
-            // ClassSession
-            // --------------------------------------------------------
-
-            if (!enroll.ClassSessionId.HasValue)
-            {
+            if (enroll.Status != EnrollStatus.Approved)
                 throw new Exception(
-                    "Enroll chưa được gán vào ClassSession.");
-            }
+                    "Chỉ được chốt điểm cho sinh viên đang ở trạng thái Approved.");
 
+            var classSession = GetClassSession(enroll);
 
-            var classSession =
-                classSessionRepository
-                    .GetById(
-                        enroll.ClassSessionId.Value);
+            ValidateTeacherPermission(teacher, classSession);
+            ValidateEnrollSubject(enroll, classSession);
+            ValidateSessionEnded(classSession);
 
-            if (classSession == null)
-            {
-                throw new Exception(
-                    "Không tìm thấy ClassSession.");
-            }
+            // Tính toán lại toàn bộ kết quả.
+            var calculated = await CalculateStudentScore(
+                enroll,
+                classSession);
 
+            score.AttendanceScore = calculated.AttendanceScore;
+            score.QuizScore = calculated.AssignmentAverage;
+            score.MidtermScore = calculated.MidtermExamScore;
+            score.FinalScore = calculated.FinalExamScore;
 
-            // --------------------------------------------------------
-            // Teacher
-            // --------------------------------------------------------
+            score.TotalScore = calculated.TotalScore;
+            score.LetterGrade = calculated.LetterGrade;
+            score.GPA = calculated.GPA;
 
-            if (classSession.HomeroomTeacherId
-                != teacher.Id)
-            {
-                throw new UnauthorizedAccessException(
-                    "Bạn không có quyền cập nhật điểm cho lớp học này.");
-            }
+            // Chính thức chốt điểm.
+            score.IsFinalized = true;
 
+            enroll.Status = calculated.TotalScore >= 4.0
+                ? EnrollStatus.Completed
+                : EnrollStatus.Failed;
 
-            // --------------------------------------------------------
-            // Subject
-            // --------------------------------------------------------
-
-            if (enroll.SubjectId
-                != classSession.SubjectId)
-            {
-                throw new Exception(
-                    "Subject của Enroll không khớp với ClassSession.");
-            }
-
-
-            // --------------------------------------------------------
-            // Session
-            // --------------------------------------------------------
-
-            var session =
-                sessionRepository
-                    .GetById(classSession.SessionId);
-
-            if (session == null)
-            {
-                throw new Exception(
-                    "Không tìm thấy Session.");
-            }
-
-
-            // --------------------------------------------------------
-            // Chỉ update sau Session.End
-            // --------------------------------------------------------
-
-            if (DateTime.Now < session.End)
-            {
-                throw new Exception(
-                    $"Chưa thể cập nhật điểm tổng kết. " +
-                    $"Session kết thúc vào " +
-                    $"{session.End:dd/MM/yyyy HH:mm}.");
-            }
-
-
-            // --------------------------------------------------------
-            // Tính lại
-            // --------------------------------------------------------
-
-            var calculated =
-                await CalculateStudentScore(
-                    enroll,
-                    classSession);
-
-
-            score.AttendanceScore =
-                calculated.AttendanceScore;
-
-            score.QuizScore =
-                calculated.AssignmentAverage;
-
-            score.MidtermScore = 0;
-
-            score.FinalScore =
-                calculated.FinalExamScore;
-
-            score.TotalScore =
-                calculated.TotalScore;
-
-            score.LetterGrade =
-                calculated.LetterGrade;
-
+            _unitOfWork
+                .GenericRepository<Enroll>()
+                .Update(enroll);
 
             scoreRepository.Update(score);
 
             _unitOfWork.Save();
         }
-
 
         // ============================================================
         // 4. STUDENT - GET ALL SCORES
@@ -519,78 +219,60 @@ namespace SchoolProject.Servies
         public async Task<List<StudentScoreViewModel>>
             GetStudentScores(string userId)
         {
-            var studentRepository =
-                _unitOfWork.GenericRepository<Student>();
-
-            var enrollRepository =
-                _unitOfWork.GenericRepository<Enroll>();
-
-            var scoreRepository =
-                _unitOfWork.GenericRepository<StudentScore>();
-
-
-            var student =
-                studentRepository
-                    .GetAll()
-                    .FirstOrDefault(x =>
-                        x.KeyId == userId);
+            var student = _unitOfWork
+                .GenericRepository<Student>()
+                .GetAll()
+                .FirstOrDefault(x => x.KeyId == userId);
 
             if (student == null)
-            {
-                throw new Exception(
-                    "Không tìm thấy Student.");
-            }
+                throw new Exception("Không tìm thấy Student.");
 
+            var enrolls = _unitOfWork
+                .GenericRepository<Enroll>()
+                .GetAll()
+                .Where(x => x.StudentId == student.Id)
+                .ToList();
 
-            var enrolls =
-                enrollRepository
-                    .GetAll()
-                    .Where(x =>
-                        x.StudentId == student.Id)
-                    .ToList();
+            var enrollIds = enrolls.Select(x => x.Id).ToList();
 
+            var scores = _unitOfWork
+      .GenericRepository<StudentScore>()
+      .GetAll()
+      .Where(x =>
+          enrollIds.Contains(x.EnrollId) &&
+          x.IsFinalized)
+      .ToList();
 
-            var enrollIds =
-                enrolls
-                    .Select(x => x.Id)
-                    .ToList();
+            var classSessions = _unitOfWork
+                .GenericRepository<ClassSession>()
+                .GetAll()
+                .ToList();
 
-
-            var scores =
-                scoreRepository
-                    .GetAll()
-                    .Where(x =>
-                        enrollIds.Contains(
-                            x.EnrollId))
-                    .ToList();
-
-
-            var result =
-                new List<StudentScoreViewModel>();
-
+            var result = new List<StudentScoreViewModel>();
 
             foreach (var score in scores)
             {
-                var enroll =
-                    enrolls.FirstOrDefault(x =>
-                        x.Id == score.EnrollId);
+                var enroll = enrolls.FirstOrDefault(
+                    x => x.Id == score.EnrollId);
 
-                if (enroll == null)
+                if (enroll == null ||
+                    !enroll.ClassSessionId.HasValue)
                     continue;
 
+                var classSession = classSessions.FirstOrDefault(
+                    x => x.Id == enroll.ClassSessionId.Value);
 
-                result.Add(
-                    new StudentScoreViewModel(score)
-                    {
-                        SubjectId =
-                            enroll.SubjectId
-                    });
+                if (classSession == null)
+                    continue;
+
+                result.Add(new StudentScoreViewModel(score)
+                {
+                    SubjectId = classSession.SubjectId
+                });
             }
-
 
             return result;
         }
-
 
         // ============================================================
         // 5. STUDENT - GET SCORE BY SUBJECT
@@ -601,437 +283,352 @@ namespace SchoolProject.Servies
                 string userId,
                 int subjectId)
         {
-            var studentRepository =
-                _unitOfWork.GenericRepository<Student>();
-
-            var enrollRepository =
-                _unitOfWork.GenericRepository<Enroll>();
-
-            var scoreRepository =
-                _unitOfWork.GenericRepository<StudentScore>();
-
-
-            var student =
-                studentRepository
-                    .GetAll()
-                    .FirstOrDefault(x =>
-                        x.KeyId == userId);
+            var student = _unitOfWork
+                .GenericRepository<Student>()
+                .GetAll()
+                .FirstOrDefault(x => x.KeyId == userId);
 
             if (student == null)
-            {
-                throw new Exception(
-                    "Không tìm thấy Student.");
-            }
+                throw new Exception("Không tìm thấy Student.");
 
+            var enrolls = _unitOfWork
+                .GenericRepository<Enroll>()
+                .GetAll()
+                .Where(x =>
+                    x.StudentId == student.Id &&
+                    x.SubjectId == subjectId &&
+                    x.ClassSessionId.HasValue)
+                .ToList();
 
-            var enrolls =
-                enrollRepository
-                    .GetAll()
-                    .Where(x =>
-                        x.StudentId == student.Id &&
-                        x.SubjectId == subjectId)
-                    .ToList();
+            var enrollIds = enrolls.Select(x => x.Id).ToList();
 
+            var scores = _unitOfWork
+      .GenericRepository<StudentScore>()
+      .GetAll()
+      .Where(x =>
+          enrollIds.Contains(x.EnrollId) &&
+          x.IsFinalized)
+      .ToList();
 
-            var enrollIds =
-                enrolls
-                    .Select(x => x.Id)
-                    .ToList();
-
-
-            var scores =
-                scoreRepository
-                    .GetAll()
-                    .Where(x =>
-                        enrollIds.Contains(
-                            x.EnrollId))
-                    .ToList();
-
-
-            var result =
-                new List<StudentScoreViewModel>();
-
-
-            foreach (var score in scores)
-            {
-                result.Add(
-                    new StudentScoreViewModel(score)
-                    {
-                        SubjectId =
-                            subjectId
-                    });
-            }
-
-
-            return result;
+            return scores.Select(score =>
+                new StudentScoreViewModel(score)
+                {
+                    SubjectId = subjectId
+                }).ToList();
         }
 
-
         // ============================================================
-        // 6. CALCULATE STUDENT SCORE
+        // 6. HELPER METHODS
         // ============================================================
 
-        private async Task<StudentScoreResult>
-            CalculateStudentScore(
-                Enroll enroll,
-                ClassSession classSession)
+        private Teacher GetTeacher(string userId)
         {
-            var assignmentRepository =
-                _unitOfWork
-                    .GenericRepository<Assignment>();
+            var teacher = _unitOfWork
+                .GenericRepository<Teacher>()
+                .GetAll()
+                .FirstOrDefault(x => x.KeyId == userId);
 
-            var submissionRepository =
-                _unitOfWork
-                    .GenericRepository<Submission>();
+            if (teacher == null)
+                throw new Exception("Không tìm thấy Teacher.");
 
+            return teacher;
+        }
 
-            int subjectId =
-                enroll.SubjectId;
+        private ClassSession GetClassSession(Enroll enroll)
+        {
+            if (!enroll.ClassSessionId.HasValue)
+                throw new Exception(
+                    "Enroll chưa được gán vào ClassSession.");
 
+            var classSession = _unitOfWork
+                .GenericRepository<ClassSession>()
+                .GetById(enroll.ClassSessionId.Value);
 
-            // ========================================================
-            // A. ASSIGNMENT
-            // ========================================================
+            if (classSession == null)
+                throw new Exception("Không tìm thấy ClassSession.");
 
-            var assignments =
-                assignmentRepository
-                    .GetAll()
-                    .Where(x =>
-                        x.SubjectId == subjectId &&
-                        x.ClassSessionId ==
-                            classSession.Id &&
-                        x.Type ==
-                            AssignmentType.Assignment)
-                    .OrderBy(x =>
-                        x.DueDate)
-                    .ToList();
+            return classSession;
+        }
 
+        private void ValidateSessionEnded(ClassSession classSession)
+        {
+            var session = _unitOfWork
+                .GenericRepository<Session>()
+                .GetById(classSession.SessionId);
 
-            if (!assignments.Any())
+            if (session == null)
+                throw new Exception("Không tìm thấy Session.");
+
+            if (DateTime.Now < session.End)
             {
                 throw new Exception(
-                    "Subject chưa có Assignment.");
+                    $"Chưa thể tổng kết điểm. Session kết thúc vào " +
+                    $"{session.End:dd/MM/yyyy HH:mm}.");
             }
 
+            if (DateTime.Now.Date <= classSession.EndDate.Date)
+            {
+                throw new Exception(
+                    $"Lớp học chưa kết thúc. Ngày kết thúc: " +
+                    $"{classSession.EndDate:dd/MM/yyyy}.");
+            }
+        }
 
-            var assignmentIds =
-                assignments
+        // ============================================================
+        // 7. CALCULATE STUDENT SCORE
+        // ============================================================
+
+        private async Task<StudentScoreResult> CalculateStudentScore(
+            Enroll enroll,
+            ClassSession classSession)
+        {
+            // A. GRADE CONFIGURATION
+
+            var config = _unitOfWork
+                .GenericRepository<GradeConfiguration>()
+                .GetAll()
+                .FirstOrDefault(x =>
+                    x.ClassSessionId == classSession.Id);
+
+            if (config == null)
+                throw new Exception(
+                    "ClassSession chưa được cấu hình trọng số điểm.");
+
+            ValidateGradeConfiguration(config, classSession);
+
+            // B. ASSIGNMENTS
+
+            var assignments = _unitOfWork
+                .GenericRepository<Assignment>()
+                .GetAll()
+                .Where(x =>
+                    x.ClassSessionId == classSession.Id &&
+                    x.Type == AssignmentType.Assignment)
+                .OrderBy(x => x.DueDate)
+                .ToList();
+
+            double assignmentAverage = 0;
+
+            if (config.QuizWeight > 0)
+            {
+                if (!assignments.Any())
+                    throw new Exception(
+                        "ClassSession chưa có Assignment.");
+
+                var assignmentIds = assignments
                     .Select(x => x.Id)
                     .ToList();
 
-
-            var submissions =
-                submissionRepository
+                var submissions = _unitOfWork
+                    .GenericRepository<Submission>()
                     .GetAll()
                     .Where(x =>
-                        x.StudentId ==
-                            enroll.StudentId &&
-                        assignmentIds.Contains(
-                            x.AssignmentId))
+                        x.StudentId == enroll.StudentId &&
+                        assignmentIds.Contains(x.AssignmentId))
                     .ToList();
 
+                var assignmentScores = new List<double>();
 
-            var assignmentScores =
-                new List<double>();
-
-
-            foreach (var assignment in assignments)
-            {
-                var submission =
-                    submissions.FirstOrDefault(x =>
-                        x.AssignmentId ==
-                        assignment.Id);
-
-
-                // ----------------------------------------------------
-                // Chưa nộp + chưa đến hạn
-                // ----------------------------------------------------
-
-                if (submission == null &&
-                    assignment.DueDate >
-                    DateTime.Now)
+                foreach (var assignment in assignments)
                 {
-                    throw new Exception(
-                        $"Bài '{assignment.Title}' " +
-                        $"chưa đến hạn và sinh viên chưa nộp.");
+                    var submission = submissions.FirstOrDefault(
+                        x => x.AssignmentId == assignment.Id);
+
+                    if (submission == null)
+                    {
+                        if (assignment.DueDate > DateTime.Now)
+                        {
+                            throw new Exception(
+                                $"Bài '{assignment.Title}' chưa đến hạn " +
+                                "và sinh viên chưa nộp.");
+                        }
+
+                        assignmentScores.Add(0);
+                        continue;
+                    }
+
+                    if (!submission.Score.HasValue)
+                    {
+                        throw new Exception(
+                            $"Bài '{assignment.Title}' đã nộp " +
+                            "nhưng chưa được giáo viên chấm.");
+                    }
+
+                    ValidateScoreRange(
+                        submission.Score.Value,
+                        $"Điểm Assignment '{assignment.Title}'");
+
+                    assignmentScores.Add(submission.Score.Value);
                 }
 
-
-                // ----------------------------------------------------
-                // Chưa nộp + đã hết hạn
-                // => 0 điểm
-                // ----------------------------------------------------
-
-                if (submission == null &&
-                    assignment.DueDate <=
-                    DateTime.Now)
-                {
-                    assignmentScores.Add(0);
-                    continue;
-                }
-
-
-                // ----------------------------------------------------
-                // Đã nộp nhưng chưa chấm
-                // ----------------------------------------------------
-
-                if (submission != null &&
-                    !submission.Score.HasValue)
-                {
-                    throw new Exception(
-                        $"Bài '{assignment.Title}' " +
-                        $"đã nộp nhưng chưa được giáo viên chấm.");
-                }
-
-
-                // ----------------------------------------------------
-                // Đã chấm
-                // ----------------------------------------------------
-
-                assignmentScores.Add(
-                    submission!.Score!.Value);
+                assignmentAverage = Math.Round(
+                    assignmentScores.Average(), 2);
             }
 
+            // C. MIDTERM
 
-            double assignmentAverage =
-                assignmentScores.Average();
+            double midtermExamScore = 0;
 
-
-            assignmentAverage =
-                Math.Round(
-                    assignmentAverage,
-                    2);
-
-
-            // ========================================================
-            // B. FINAL EXAM
-            // ========================================================
-
-            var finalExams =
-                assignmentRepository
-                    .GetAll()
-                    .Where(x =>
-                        x.SubjectId == subjectId &&
-                        x.ClassSessionId ==
-                            classSession.Id &&
-                        x.Type ==
-                            AssignmentType.FinalExam)
-                    .OrderBy(x =>
-                        x.DueDate)
-                    .ToList();
-
-
-            if (finalExams.Count == 0)
+            if (config.MidtermWeight > 0)
             {
-                throw new Exception(
-                    "Subject chưa có Final Exam.");
+                midtermExamScore = await GetExamScore(
+                    enroll,
+                    classSession,
+                    AssignmentType.MidtermExam,
+                    "Midterm Exam");
             }
 
+            // D. FINAL
 
-            if (finalExams.Count > 1)
+            double finalExamScore = 0;
+
+            if (config.FinalWeight > 0)
             {
-                throw new Exception(
-                    "ClassSession có nhiều hơn 1 Final Exam.");
+                finalExamScore = await GetExamScore(
+                    enroll,
+                    classSession,
+                    AssignmentType.FinalExam,
+                    "Final Exam");
             }
 
-
-            var finalExam =
-                finalExams.First();
-
-
-            var finalSubmission =
-                submissionRepository
-                    .GetAll()
-                    .FirstOrDefault(x =>
-                        x.StudentId ==
-                            enroll.StudentId &&
-                        x.AssignmentId ==
-                            finalExam.Id);
-
-
-            double finalExamScore;
-
-
-            // --------------------------------------------------------
-            // Chưa thi + chưa đến hạn
-            // --------------------------------------------------------
-
-            if (finalSubmission == null &&
-                finalExam.DueDate >
-                DateTime.Now)
-            {
-                throw new Exception(
-                    "Final Exam chưa đến hạn.");
-            }
-
-
-            // --------------------------------------------------------
-            // Không thi + quá hạn
-            // => 0
-            // --------------------------------------------------------
-
-            if (finalSubmission == null &&
-                finalExam.DueDate <=
-                DateTime.Now)
-            {
-                finalExamScore = 0;
-            }
-
-            // --------------------------------------------------------
-            // Đã thi nhưng chưa chấm
-            // --------------------------------------------------------
-
-            else if (finalSubmission != null &&
-                     !finalSubmission.Score.HasValue)
-            {
-                throw new Exception(
-                    "Final Exam đã nộp nhưng chưa được giáo viên chấm.");
-            }
-
-            // --------------------------------------------------------
-            // Đã chấm
-            // --------------------------------------------------------
-
-            else
-            {
-                finalExamScore =
-                    finalSubmission!.Score!.Value;
-            }
-
-
-            finalExamScore =
-                Math.Round(
-                    finalExamScore,
-                    2);
-
-
-            // ========================================================
-            // C. ATTENDANCE
-            // ========================================================
+            // E. ATTENDANCE
 
             double attendanceScore = 0;
 
-
-            if (classSession.HasAttendance)
+            if (classSession.HasAttendance &&
+                config.AttendanceWeight > 0)
             {
-                attendanceScore =
-                    await CalculateAttendanceScore(
-                        enroll,
-                        classSession);
+                attendanceScore = await CalculateAttendanceScore(
+                    enroll,
+                    classSession);
             }
 
+            // F. WEIGHTED TOTAL - SCALE 10
 
-            // ========================================================
-            // D. TOTAL SCORE
-            // ========================================================
+            double totalScore =
+                attendanceScore *
+                    (double)config.AttendanceWeight / 100
+                +
+                assignmentAverage *
+                    (double)config.QuizWeight / 100
+                +
+                midtermExamScore *
+                    (double)config.MidtermWeight / 100
+                +
+                finalExamScore *
+                    (double)config.FinalWeight / 100;
 
-            double totalScore;
+            totalScore = Math.Round(totalScore, 2);
 
+            // G. CONVERT SCALE 10 TO SCALE 4
 
-            if (classSession.HasAttendance)
-            {
-                // Attendance = 10%
-                // Assignment = 40%
-                // Final = 50%
-
-                totalScore =
-                    (attendanceScore * 0.10)
-                    +
-                    (assignmentAverage * 0.40)
-                    +
-                    (finalExamScore * 0.50);
-            }
-            else
-            {
-                // Assignment = 50%
-                // Final = 50%
-
-                totalScore =
-                    (assignmentAverage * 0.50)
-                    +
-                    (finalExamScore * 0.50);
-            }
-
-
-            totalScore =
-                Math.Round(
-                    totalScore,
-                    2);
-
-
-            // ========================================================
-            // E. LETTER GRADE
-            // ========================================================
-
-            var letterGrade =
-                CalculateLetterGrade(
-                    totalScore);
-
+            var grade = ConvertGrade(totalScore);
 
             return new StudentScoreResult
             {
-                AttendanceScore =
-                    attendanceScore,
+                AttendanceScore = attendanceScore,
+                AssignmentAverage = assignmentAverage,
+                MidtermExamScore = midtermExamScore,
+                FinalExamScore = finalExamScore,
 
-                AssignmentAverage =
-                    assignmentAverage,
-
-                FinalExamScore =
-                    finalExamScore,
-
-                TotalScore =
-                    totalScore,
-
-                LetterGrade =
-                    letterGrade
+                TotalScore = totalScore,
+                LetterGrade = grade.LetterGrade,
+                GPA = grade.GPA
             };
         }
 
+        // ============================================================
+        // 8. GET MIDTERM / FINAL EXAM SCORE
+        // ============================================================
+
+        private async Task<double> GetExamScore(
+            Enroll enroll,
+            ClassSession classSession,
+            AssignmentType examType,
+            string examName)
+        {
+            var exams = _unitOfWork
+                .GenericRepository<Assignment>()
+                .GetAll()
+                .Where(x =>
+                    x.ClassSessionId == classSession.Id &&
+                    x.Type == examType)
+                .OrderBy(x => x.DueDate)
+                .ToList();
+
+            if (exams.Count == 0)
+                throw new Exception(
+                    $"ClassSession chưa có {examName}.");
+
+            if (exams.Count > 1)
+                throw new Exception(
+                    $"ClassSession có nhiều hơn một {examName}.");
+
+            var exam = exams.First();
+
+            var submission = _unitOfWork
+                .GenericRepository<Submission>()
+                .GetAll()
+                .FirstOrDefault(x =>
+                    x.StudentId == enroll.StudentId &&
+                    x.AssignmentId == exam.Id);
+
+            if (submission == null)
+            {
+                if (exam.DueDate > DateTime.Now)
+                    throw new Exception(
+                        $"{examName} chưa đến hạn.");
+
+                return 0;
+            }
+
+            if (!submission.Score.HasValue)
+                throw new Exception(
+                    $"{examName} đã nộp nhưng chưa được giáo viên chấm.");
+
+            ValidateScoreRange(
+                submission.Score.Value,
+                $"Điểm {examName}");
+
+            return Math.Round(submission.Score.Value, 2);
+        }
 
         // ============================================================
-        // 7. CALCULATE ATTENDANCE
+        // 9. CALCULATE ATTENDANCE
         // ============================================================
 
-        private async Task<double>
-            CalculateAttendanceScore(
-                Enroll enroll,
-                ClassSession classSession)
+        private async Task<double> CalculateAttendanceScore(
+            Enroll enroll,
+            ClassSession classSession)
         {
             if (!classSession.HasAttendance)
                 return 0;
 
-
             if (classSession.TotalSessions <= 0)
-            {
                 throw new Exception(
                     "ClassSession chưa cấu hình TotalSessions.");
-            }
 
+            var scheduleIds = _unitOfWork
+                .GenericRepository<Schedule>()
+                .GetAll()
+                .Where(x => x.ClassSessionId == classSession.Id)
+                .Select(x => x.Id)
+                .ToList();
 
-            var attendanceRepository =
-                _unitOfWork
-                    .GenericRepository<Attendance>();
+            if (!scheduleIds.Any())
+                throw new Exception(
+                    "ClassSession chưa có Schedule.");
 
+            var attendances = _unitOfWork
+                .GenericRepository<Attendance>()
+                .GetAll()
+                .Where(x =>
+                    x.EnrollId == enroll.Id &&
+                    scheduleIds.Contains(x.ScheduleId))
+                .OrderBy(x => x.Date)
+                .ToList();
 
-            var attendances =
-                attendanceRepository
-                    .GetAll()
-                    .Where(x =>
-                        x.EnrollId ==
-                            enroll.Id &&
-                        x.SubjectId ==
-                            enroll.SubjectId)
-                    .OrderBy(x =>
-                        x.Date)
-                    .ToList();
-
-
-            // --------------------------------------------------------
-            // Phải đủ số buổi
-            // --------------------------------------------------------
-
-            if (attendances.Count <
-                classSession.TotalSessions)
+            if (attendances.Count < classSession.TotalSessions)
             {
                 throw new Exception(
                     $"Chưa đủ dữ liệu điểm danh: " +
@@ -1039,57 +636,128 @@ namespace SchoolProject.Servies
                     $"{classSession.TotalSessions} buổi.");
             }
 
+            var totalSessions = attendances
+                .Take(classSession.TotalSessions)
+                .ToList();
 
-            // --------------------------------------------------------
-            // Chỉ lấy đúng số buổi
-            // --------------------------------------------------------
+            int present = totalSessions.Count(x => x.Present);
 
-            var totalSessions =
-                attendances
-                    .Take(classSession.TotalSessions)
-                    .ToList();
-
-
-            var present =
-                totalSessions.Count(x =>
-                    x.Present);
-
-
-            var attendanceScore =
+            double attendanceScore =
                 (double)present /
-                classSession.TotalSessions *
-                10;
+                classSession.TotalSessions * 10;
 
-
-            return Math.Round(
-                attendanceScore,
-                2);
+            return Math.Round(attendanceScore, 2);
         }
 
-
         // ============================================================
-        // 8. LETTER GRADE
+        // 10. VALIDATIONS
         // ============================================================
 
-        private string CalculateLetterGrade(
-            double total)
+        private void ValidateTeacherPermission(
+            Teacher teacher,
+            ClassSession classSession)
         {
-            if (total >= 9.0)
-                return "A";
+            if (classSession.HomeroomTeacherId != teacher.Id)
+            {
+                throw new UnauthorizedAccessException(
+                    "Bạn không có quyền thao tác điểm của lớp học này.");
+            }
+        }
 
-            if (total >= 8.0)
-                return "B";
+        private void ValidateEnrollSubject(
+            Enroll enroll,
+            ClassSession classSession)
+        {
+            if (enroll.SubjectId != classSession.SubjectId)
+            {
+                throw new Exception(
+                    "Subject của Enroll không khớp với ClassSession.");
+            }
+        }
 
-            if (total >= 7.0)
-                return "C";
+        private void ValidateGradeConfiguration(
+            GradeConfiguration config,
+            ClassSession classSession)
+        {
+            var total =
+                config.AttendanceWeight +
+                config.QuizWeight +
+                config.MidtermWeight +
+                config.FinalWeight;
 
-            if (total >= 5.0)
-                return "D";
+            if (config.AttendanceWeight < 0 ||
+                config.QuizWeight < 0 ||
+                config.MidtermWeight < 0 ||
+                config.FinalWeight < 0)
+            {
+                throw new Exception(
+                    "Trọng số điểm không được nhỏ hơn 0.");
+            }
 
-            return "F";
+            if (config.AttendanceWeight > 100 ||
+                config.QuizWeight > 100 ||
+                config.MidtermWeight > 100 ||
+                config.FinalWeight > 100)
+            {
+                throw new Exception(
+                    "Mỗi trọng số không được vượt quá 100%.");
+            }
+
+            if (total != 100)
+                throw new Exception(
+                    "Tổng trọng số điểm phải bằng 100%.");
+
+            if (!classSession.HasAttendance &&
+                config.AttendanceWeight != 0)
+            {
+                throw new Exception(
+                    "Lớp không sử dụng điểm danh. " +
+                    "Trọng số chuyên cần phải bằng 0.");
+            }
+        }
+
+        private void ValidateScoreRange(
+            double score,
+            string fieldName)
+        {
+            if (score < 0 || score > 10)
+            {
+                throw new Exception(
+                    $"{fieldName} phải nằm trong khoảng từ 0 đến 10.");
+            }
+        }
+
+        // ============================================================
+        // 11. CONVERT GRADE
+        // ============================================================
+
+        private (string LetterGrade, double GPA) ConvertGrade(
+            double score)
+        {
+            if (score >= 8.5)
+                return ("A", 4.0);
+
+            if (score >= 8.0)
+                return ("B+", 3.5);
+
+            if (score >= 7.0)
+                return ("B", 3.0);
+
+            if (score >= 6.5)
+                return ("C+", 2.5);
+
+            if (score >= 5.5)
+                return ("C", 2.0);
+
+            if (score >= 5.0)
+                return ("D+", 1.5);
+
+            if (score >= 4.0)
+                return ("D", 1.0);
+
+            return ("F", 0.0);
         }
     }
-
 
     // ================================================================
     // SCORE RESULT
@@ -1101,11 +769,14 @@ namespace SchoolProject.Servies
 
         public double AssignmentAverage { get; set; }
 
+        public double MidtermExamScore { get; set; }
+
         public double FinalExamScore { get; set; }
 
         public double TotalScore { get; set; }
 
-        public string LetterGrade { get; set; }
-            = string.Empty;
+        public string LetterGrade { get; set; } = string.Empty;
+
+        public double GPA { get; set; }
     }
 }

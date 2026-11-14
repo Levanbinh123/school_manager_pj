@@ -26,6 +26,18 @@ namespace SchoolProject.Models
 
         public ICollection<StudentScore> StudentScores { get; set; }
             = new HashSet<StudentScore>();
+        public EnrollStatus Status { get; set; } = EnrollStatus.Registered;
 
+        public DateTime RegisteredAt { get; set; } = DateTime.Now;
+
+    }
+    public enum EnrollStatus
+    {
+        Registered = 1,
+        Approved = 2,
+        Dropped = 3,
+        Completed = 4,
+        Failed = 5,
+        PaymentExpired = 6
     }
 }

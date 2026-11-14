@@ -10,3 +10,4 @@ C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Models\obj\Debug\net8
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Models\obj\Debug\net8.0\refint\SchoolProject.Models.dll
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Models\obj\Debug\net8.0\SchoolProject.Models.pdb
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Models\obj\Debug\net8.0\ref\SchoolProject.Models.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Models\obj\Debug\net8.0\SchoolProject.Models.sourcelink.json

@@ -10,16 +10,12 @@ namespace SchoolProject.ViewModels
     {
         public int ClassSessionId { get; set; }
 
-        public int SubjectId { get; set; }
-
-        public int TeacherId { get; set; }
-
         public DayOfWeek Day { get; set; }
 
-        public TimeSpan StartTime { get; set; }
+        // ID tiết bắt đầu
+        public int StartPeriodId { get; set; }
 
-        public TimeSpan EndTime { get; set; }
-
-        public string Room { get; set; }
+        // ID tiết kết thúc
+        public int EndPeriodId { get; set; }
     }
 }

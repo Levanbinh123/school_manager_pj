@@ -1,9 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "fSWMlQUpm2w=",
+  "dgSpecHash": "BDxAOEk/3HE=",
   "success": true,
   "projectFilePath": "C:\\he_thong_quan_ly_truong_hoc\\SchoolProject\\SchoolProject.Repositories\\SchoolProject.Repositories.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\young\\.nuget\\packages\\awssdk.core\\4.1.0\\awssdk.core.4.1.0.nupkg.sha512",
+    "C:\\Users\\young\\.nuget\\packages\\awssdk.extensions.numerics\\4.1.0\\awssdk.extensions.numerics.4.1.0.nupkg.sha512",
+    "C:\\Users\\young\\.nuget\\packages\\awssdk.s3\\4.1.0\\awssdk.s3.4.1.0.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.3\\microsoft.aspnetcore.authentication.jwtbearer.8.0.3.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\microsoft.aspnetcore.cryptography.internal\\8.0.12\\microsoft.aspnetcore.cryptography.internal.8.0.12.nupkg.sha512",
@@ -52,6 +55,7 @@
     "C:\\Users\\young\\.nuget\\packages\\system.composition.runtime\\6.0.0\\system.composition.runtime.6.0.0.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\system.composition.typedparts\\6.0.0\\system.composition.typedparts.6.0.0.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\system.identitymodel.tokens.jwt\\7.1.2\\system.identitymodel.tokens.jwt.7.1.2.nupkg.sha512",
+    "C:\\Users\\young\\.nuget\\packages\\system.io.hashing\\11.0.0\\system.io.hashing.11.0.0.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\system.io.pipelines\\6.0.3\\system.io.pipelines.6.0.3.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.23\\microsoft.windowsdesktop.app.ref.8.0.23.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.23\\microsoft.netcore.app.ref.8.0.23.nupkg.sha512",

@@ -1,9 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "hbeQrCeiQUE=",
+  "dgSpecHash": "1Tlb7Xs6Hrk=",
   "success": true,
   "projectFilePath": "C:\\he_thong_quan_ly_truong_hoc\\SchoolProject\\SchoolProject.Web\\SchoolProject.Web.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\young\\.nuget\\packages\\awssdk.core\\4.1.0\\awssdk.core.4.1.0.nupkg.sha512",
+    "C:\\Users\\young\\.nuget\\packages\\awssdk.extensions.numerics\\4.1.0\\awssdk.extensions.numerics.4.1.0.nupkg.sha512",
+    "C:\\Users\\young\\.nuget\\packages\\awssdk.s3\\4.1.0\\awssdk.s3.4.1.0.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\humanizer\\2.14.1\\humanizer.2.14.1.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\humanizer.core.af\\2.14.1\\humanizer.core.af.2.14.1.nupkg.sha512",
@@ -117,14 +120,14 @@
     "C:\\Users\\young\\.nuget\\packages\\system.composition.typedparts\\7.0.0\\system.composition.typedparts.7.0.0.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\system.configuration.configurationmanager\\8.0.0\\system.configuration.configurationmanager.8.0.0.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\system.identitymodel.tokens.jwt\\7.1.2\\system.identitymodel.tokens.jwt.7.1.2.nupkg.sha512",
+    "C:\\Users\\young\\.nuget\\packages\\system.io.hashing\\11.0.0\\system.io.hashing.11.0.0.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\system.linq.dynamic.core\\1.7.4\\system.linq.dynamic.core.1.7.4.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\system.reflection.metadataloadcontext\\8.0.0\\system.reflection.metadataloadcontext.8.0.0.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\system.security.cryptography.pkcs\\6.0.4\\system.security.cryptography.pkcs.6.0.4.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\system.security.cryptography.protecteddata\\8.0.0\\system.security.cryptography.protecteddata.8.0.0.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.23\\microsoft.windowsdesktop.app.ref.8.0.23.nupkg.sha512",
     "C:\\Users\\young\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.23\\microsoft.netcore.app.ref.8.0.23.nupkg.sha512",
-    "C:\\Users\\young\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.23\\microsoft.aspnetcore.app.ref.8.0.23.nupkg.sha512",
-    "C:\\Users\\young\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.23\\microsoft.netcore.app.host.win-x64.8.0.23.nupkg.sha512"
+    "C:\\Users\\young\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.23\\microsoft.aspnetcore.app.ref.8.0.23.nupkg.sha512"
   ],
   "logs": []
 }

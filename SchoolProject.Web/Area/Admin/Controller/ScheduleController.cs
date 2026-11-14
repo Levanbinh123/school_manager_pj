@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchoolProject.Servies;
 using SchoolProject.ViewModels;
+using System.Security.Claims;
 
 namespace SchoolProject.Web.Controllers
 {
     [ApiController]
-    [Route("api/admin/[controller]")]
-    [Authorize(Roles = "Admin")]
+    [Route("api/[controller]")]
+    [Authorize]
     public class ScheduleController : ControllerBase
     {
         private readonly IScheduleService _scheduleService;
@@ -18,8 +20,12 @@ namespace SchoolProject.Web.Controllers
             _scheduleService = scheduleService;
         }
 
-        // GET: api/admin/Schedule
+        // =========================================
+        // ADMIN: GET ALL SCHEDULES
+        // GET: api/Schedule
+        // =========================================
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _scheduleService.GetAll();
@@ -27,8 +33,12 @@ namespace SchoolProject.Web.Controllers
             return Ok(result);
         }
 
-        // GET: api/admin/Schedule/1
+        // =========================================
+        // ADMIN: GET SCHEDULE BY ID
+        // GET: api/Schedule/1
+        // =========================================
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetById(int id)
         {
             if (id <= 0)
@@ -39,8 +49,7 @@ namespace SchoolProject.Web.Controllers
                 });
             }
 
-            var result =
-                await _scheduleService.GetById(id);
+            var result = await _scheduleService.GetById(id);
 
             if (result == null)
             {
@@ -53,8 +62,12 @@ namespace SchoolProject.Web.Controllers
             return Ok(result);
         }
 
-        // POST: api/admin/Schedule
+        // =========================================
+        // ADMIN: ADD SCHEDULE
+        // POST: api/Schedule
+        // =========================================
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Add(
             [FromBody] CreateScheduleViewModel vm)
         {
@@ -81,8 +94,12 @@ namespace SchoolProject.Web.Controllers
             }
         }
 
-        // PUT: api/admin/Schedule/1
+        // =========================================
+        // ADMIN: UPDATE SCHEDULE
+        // PUT: api/Schedule/1
+        // =========================================
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(
             int id,
             [FromBody] CreateScheduleViewModel vm)
@@ -118,8 +135,12 @@ namespace SchoolProject.Web.Controllers
             }
         }
 
-        // DELETE: api/admin/Schedule/1
+        // =========================================
+        // ADMIN: DELETE SCHEDULE
+        // DELETE: api/Schedule/1
+        // =========================================
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             if (id <= 0)
@@ -142,6 +163,76 @@ namespace SchoolProject.Web.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+
+        // =========================================
+        // STUDENT: GET MY SCHEDULE
+        // GET: api/Schedule/my
+        // =========================================
+        [HttpGet("my")]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> GetMyStudentSchedule()
+        {
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Không tìm thấy UserId trong JWT."
+                });
+            }
+
+            try
+            {
+                var result = await _scheduleService
+                    .GetStudentScheduleByUserId(userId);
+
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+
+        // =========================================
+        // TEACHER: GET MY TEACHING SCHEDULE
+        // GET: api/Schedule/my-teaching
+        // =========================================
+        [HttpGet("my-teaching")]
+        [Authorize(Roles = "Teacher")]
+        public async Task<IActionResult> GetMyTeacherSchedule()
+        {
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Không tìm thấy UserId trong JWT."
+                });
+            }
+
+            try
+            {
+                var result = await _scheduleService
+                    .GetTeacherScheduleByUserId(userId);
+
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new
                 {
                     message = ex.Message
                 });

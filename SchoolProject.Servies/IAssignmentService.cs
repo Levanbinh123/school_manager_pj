@@ -1,4 +1,5 @@
-﻿using SchoolProject.ViewModels;
+﻿using Microsoft.AspNetCore.Http;
+using SchoolProject.ViewModels;
 
 namespace SchoolProject.Servies
 {
@@ -7,11 +8,16 @@ namespace SchoolProject.Servies
         // =====================================================
         // TEACHER - ASSIGNMENT
         // =====================================================
-
         Task AddAssignment(
             string userId,
-            CreateAssignmentViewModel vm);
+            CreateAssignmentViewModel vm,
+            IFormFile? file);
 
+        Task UpdateAssignment(
+            string userId,
+            int id,
+            CreateAssignmentViewModel vm,
+            IFormFile? file);
         Task<List<AssignmentViewModel>> GetTeacherAssignments(
             string userId);
 
@@ -19,10 +25,7 @@ namespace SchoolProject.Servies
             string userId,
             int id);
 
-        Task UpdateAssignment(
-            string userId,
-            int id,
-            CreateAssignmentViewModel vm);
+  
 
         Task DeleteAssignment(
             string userId,

@@ -28,4 +28,39 @@ public class ClassSession
 
     public ICollection<Enroll> Enrolls { get; set; }
         = new HashSet<Enroll>();
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public ClassSessionStatus Status { get; set; }
+    = ClassSessionStatus.Planned;
+    public DateTime RegistrationStart { get; set; }
+    public DateTime RegistrationEnd { get; set; }
+    public int EnrolledCount { get; set; } = 0;
+    // Thời điểm bắt đầu thanh toán
+    public DateTime? PaymentStartDate { get; set; }
+
+    // Thời điểm kết thúc thanh toán
+    public DateTime? PaymentEndDate { get; set; }
+    public GradeConfiguration? GradeConfiguration { get; set; }
 }
+public enum ClassSessionStatus
+{
+    Planned = 0,
+    OpenForRegistration = 1,
+    Full = 2,
+    Confirmed = 3,
+    InProgress = 4,
+    Completed = 5,
+    Cancelled = 6,
+    RegistrationClosed = 7,
+    AwaitingPaymentApproval = 8,
+    PaymentOpen = 9,
+    PaymentClosed = 10
+}
+//Trạng thái	Ý nghĩa
+//Planned	Đã tạo lớp, chưa mở đăng ký
+//OpenForRegistration	Đang nhận sinh viên
+//Full	Đã đủ số lượng
+//Confirmed	Đủ điều kiện mở lớp
+//InProgress	Đang giảng dạy
+//Completed	Đã hoàn thành
+//Cancelled	Lớp bị hủy

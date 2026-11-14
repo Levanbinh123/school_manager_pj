@@ -17,13 +17,10 @@ namespace SchoolProject.ViewModels
 
         public DateTime DueDate { get; set; }
 
-        public int SubjectId { get; set; }
-
-        public int TeacherId { get; set; }
-
         public int ClassSessionId { get; set; }
 
         public AssignmentType Type { get; set; }
+        public string? AttachmentUrl { get; set; }
 
         public AssignmentViewModel()
         {
@@ -35,10 +32,10 @@ namespace SchoolProject.ViewModels
             Title = assignment.Title;
             Description = assignment.Description;
             DueDate = assignment.DueDate;
-            SubjectId = assignment.SubjectId;
-            TeacherId = assignment.TeacherId;
+         
             ClassSessionId = assignment.ClassSessionId;
             Type = assignment.Type;
+            AttachmentUrl = assignment.AttachmentUrl;
         }
     }
 }

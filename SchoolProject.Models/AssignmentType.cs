@@ -8,7 +8,8 @@ namespace SchoolProject.Models
 {
     public enum AssignmentType
     {
-        Assignment = 1,
-        FinalExam = 2
+        Assignment = 1,  // Bài tập thường xuyên
+        MidtermExam = 2, // Thi giữa kỳ
+        FinalExam = 3    // Thi cuối kỳ
     }
 }

@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchoolProject.Servies;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
 namespace SchoolProject.Web.Area.Admin.Controller
@@ -12,13 +14,16 @@ namespace SchoolProject.Web.Area.Admin.Controller
     {
         private readonly IRegistrationService _registrationService;
         private readonly IAuthService _authService;
+        private readonly ILogger<StudentRegistrationController> _logger;
 
         public StudentRegistrationController(
             IRegistrationService registrationService,
-            IAuthService authService)
+            IAuthService authService,
+            ILogger<StudentRegistrationController> logger)
         {
             _registrationService = registrationService;
             _authService = authService;
+            _logger = logger;
         }
 
         // =====================================================
@@ -27,21 +32,62 @@ namespace SchoolProject.Web.Area.Admin.Controller
 
         private string GetUserId()
         {
-            return User.FindFirst(
-                ClaimTypes.NameIdentifier)?.Value
+            return User.FindFirstValue(ClaimTypes.NameIdentifier)
                 ?? throw new UnauthorizedAccessException(
-                    "Không xác định được User.");
+                    "Không xác định được User từ JWT.");
         }
 
+        // =====================================================
+        // GET STUDENT ID FROM JWT
+        // =====================================================
+
+        private async Task<int> GetStudentId()
+        {
+            var userId = GetUserId();
+
+            var studentId = await _authService
+                .GetStudentIdByUserId(userId);
+
+            if (studentId <= 0)
+            {
+                throw new UnauthorizedAccessException(
+                    "Tài khoản này chưa được liên kết với Student.");
+            }
+
+            return studentId;
+        }
 
         // =====================================================
-        // GET AVAILABLE CLASS SESSIONS
+        // HANDLE ERRORS
+        // =====================================================
+
+        private IActionResult HandleError(Exception ex)
+        {
+            if (ex is UnauthorizedAccessException)
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+
+            _logger.LogError(
+                ex,
+                "Lỗi xảy ra trong StudentRegistrationController.");
+
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau."
+            });
+        }
+
+        // =====================================================
+        // 1. GET AVAILABLE CLASS SESSIONS
         //
         // GET:
         // api/student/registration/class-sessions?sessionId=1
-        //
-        // Student sẽ thấy:
-        // Subject + Class + Teacher
         // =====================================================
 
         [HttpGet("class-sessions")]
@@ -59,108 +105,60 @@ namespace SchoolProject.Web.Area.Admin.Controller
 
             try
             {
-                var userId = _authService.GetUserIdFromJwt();
+                var studentId = await GetStudentId();
 
-                var studentId =
-                    await _authService.GetStudentIdByUserId(userId);
-
-                var result =
-                    await _registrationService
-                        .GetAvailableClassSessions(
-                            studentId,
-                            sessionId);
+                var result = await _registrationService
+                    .GetAvailableClassSessions(studentId, sessionId);
 
                 return Ok(new
                 {
                     success = true,
+                    message = "Lấy danh sách lớp học phần thành công.",
                     data = result
-                });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new
-                {
-                    success = false,
-                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = ex.Message
-                });
+                return HandleError(ex);
             }
         }
 
-
         // =====================================================
-        // REGISTER CLASS SESSION
+        // 2. REGISTER CLASS SESSION
         //
         // POST:
         // api/student/registration
-        //
-        // Body:
-        // {
-        //     "classSessionId": 1
-        // }
         // =====================================================
 
         [HttpPost]
         public async Task<IActionResult> Register(
             [FromBody] RegisterClassSessionRequest request)
         {
-            if (request.ClassSessionId <= 0)
-            {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = "ClassSession ID không hợp lệ."
-                });
-            }
-
             try
             {
-                var userId = GetUserId();
+                var studentId = await GetStudentId();
 
-                var studentId =
-                    await _authService
-                        .GetStudentIdByUserId(userId);
-
-                var result =
-                    await _registrationService
-                        .RegisterClassSession(
-                            studentId,
-                            request.ClassSessionId);
+                var result = await _registrationService
+                    .RegisterClassSession(
+                        studentId,
+                        request.ClassSessionId);
 
                 return Ok(new
                 {
                     success = result,
-                    message = "Đăng ký lớp học thành công."
-                });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new
-                {
-                    success = false,
-                    message = ex.Message
+                    message = result
+                        ? "Đăng ký lớp học thành công."
+                        : "Đăng ký lớp học không thành công."
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = ex.Message
-                });
+                return HandleError(ex);
             }
         }
 
-
         // =====================================================
-        // GET MY ENROLLMENTS
+        // 3. GET MY ENROLLMENTS
         //
         // GET:
         // api/student/registration/my-subjects?sessionId=1
@@ -181,106 +179,57 @@ namespace SchoolProject.Web.Area.Admin.Controller
 
             try
             {
-                var userId = GetUserId();
+                var studentId = await GetStudentId();
 
-                var studentId =
-                    await _authService
-                        .GetStudentIdByUserId(userId);
-
-                var result =
-                    await _registrationService
-                        .GetMyEnrollments(
-                            studentId,
-                            sessionId);
+                var result = await _registrationService
+                    .GetMyEnrollments(studentId, sessionId);
 
                 return Ok(new
                 {
                     success = true,
+                    message = "Lấy danh sách môn học đã đăng ký thành công.",
                     data = result
-                });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new
-                {
-                    success = false,
-                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = ex.Message
-                });
+                return HandleError(ex);
             }
         }
 
-
         // =====================================================
-        // CANCEL REGISTRATION
+        // 4. CANCEL REGISTRATION
         //
         // DELETE:
         // api/student/registration
-        //
-        // Body:
-        // {
-        //     "classSessionId": 1
-        // }
         // =====================================================
 
         [HttpDelete]
         public async Task<IActionResult> CancelRegistration(
             [FromBody] RegisterClassSessionRequest request)
         {
-            if (request.ClassSessionId <= 0)
-            {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = "ClassSession ID không hợp lệ."
-                });
-            }
-
             try
             {
-                var userId = GetUserId();
+                var studentId = await GetStudentId();
 
-                var studentId =
-                    await _authService
-                        .GetStudentIdByUserId(userId);
-
-                var result =
-                    await _registrationService
-                        .CancelRegistration(
-                            studentId,
-                            request.ClassSessionId);
+                var result = await _registrationService
+                    .CancelRegistration(
+                        studentId,
+                        request.ClassSessionId);
 
                 return Ok(new
                 {
                     success = result,
-                    message = "Hủy đăng ký thành công."
-                });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new
-                {
-                    success = false,
-                    message = ex.Message
+                    message = result
+                        ? "Hủy đăng ký lớp học thành công."
+                        : "Hủy đăng ký lớp học không thành công."
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = ex.Message
-                });
+                return HandleError(ex);
             }
         }
-
 
         // =====================================================
         // REQUEST MODEL
@@ -288,6 +237,10 @@ namespace SchoolProject.Web.Area.Admin.Controller
 
         public class RegisterClassSessionRequest
         {
+            [Range(
+                1,
+                int.MaxValue,
+                ErrorMessage = "ClassSessionId phải lớn hơn 0.")]
             public int ClassSessionId { get; set; }
         }
     }

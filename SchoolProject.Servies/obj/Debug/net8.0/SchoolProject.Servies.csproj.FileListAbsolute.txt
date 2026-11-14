@@ -17,3 +17,6 @@ C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Servies\obj\Debug\net
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Servies\obj\Debug\net8.0\refint\SchoolProject.Servies.dll
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Servies\obj\Debug\net8.0\SchoolProject.Servies.pdb
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Servies\obj\Debug\net8.0\ref\SchoolProject.Servies.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Servies\obj\Debug\net8.0\SchoolProject.Servies.sourcelink.json
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Servies\bin\Debug\net8.0\SchoolProject.Utilities.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Servies\bin\Debug\net8.0\SchoolProject.Utilities.pdb

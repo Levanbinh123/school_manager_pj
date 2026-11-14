@@ -221,15 +221,22 @@ namespace SchoolProject.Servies
                 SessionId = vm.SessionId,
 
                 Credits = credits,
+                PricePerCredit = pricePerCredit,
 
-                PricePerCredit =
-                    pricePerCredit,
-
+                // Học phí gốc
                 Amount = amount,
 
+                // Chưa thanh toán trễ nên chưa có tiền phạt
+                LateFee = 0,
+
+                // Tổng tiền ban đầu bằng học phí gốc
+                TotalAmount = amount,
+
+                PaymentStartDate = DateTime.MinValue,
                 DueDate = vm.DueDate,
 
-                Status = "Unpaid"
+                Status = "Unpaid",
+                FundsStatus = "NotReceived"
             };
 
 

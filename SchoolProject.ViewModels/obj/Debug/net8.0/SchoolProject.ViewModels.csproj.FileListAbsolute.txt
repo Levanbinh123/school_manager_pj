@@ -13,3 +13,6 @@ C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.ViewModels\obj\Debug\
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.ViewModels\obj\Debug\net8.0\refint\SchoolProject.ViewModels.dll
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.ViewModels\obj\Debug\net8.0\SchoolProject.ViewModels.pdb
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.ViewModels\obj\Debug\net8.0\ref\SchoolProject.ViewModels.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.ViewModels\obj\Debug\net8.0\SchoolProject.ViewModels.sourcelink.json
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.ViewModels\bin\Debug\net8.0\SchoolProject.Repositories.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.ViewModels\bin\Debug\net8.0\SchoolProject.Repositories.pdb

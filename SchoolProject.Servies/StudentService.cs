@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using SchoolProject.Models;
 using SchoolProject.Repositories;
 using SchoolProject.ViewModels;
@@ -23,7 +25,6 @@ namespace SchoolProject.Servies
 
         // ============================================================
         // GET ALL STUDENTS
-        // PAGINATION + SEARCH
         // ============================================================
 
         public PagedResult<StudentViewModel> GetAll(
@@ -31,74 +32,43 @@ namespace SchoolProject.Servies
             int pageSize,
             string? search = null)
         {
-            if (pageNumber < 1)
-            {
-                pageNumber = 1;
-            }
+            // 1. Lấy Student và Include Major
+            var students = _unitOfWork
+                .GenericRepository<Student>()
+                .GetAll(
+                filter: s=>!s.IsDeleted,
+                    include: query => query.Include(s => s.Major)
+                );
 
-            if (pageSize < 1)
-            {
-                pageSize = 10;
-            }
-
-            var students =
-                _unitOfWork
-                    .GenericRepository<Student>()
-                    .GetAll();
-
-            // --------------------------------------------------------
-            // SEARCH
-            // --------------------------------------------------------
-
+            // 2. Tìm kiếm
             if (!string.IsNullOrWhiteSpace(search))
             {
-                search = search.Trim();
-
-                students = students.Where(x =>
-                    x.FirstName.Contains(search) ||
-                    x.LastName.Contains(search) ||
-                    (
-                        x.FirstName + " " + x.LastName
-                    ).Contains(search) ||
-                    x.KeyId.Contains(search)
+                students = students.Where(s =>
+                    s.FirstName.Contains(search) ||
+                    s.LastName.Contains(search) ||
+                    (s.FirstName + " " + s.LastName).Contains(search)
                 );
             }
 
-            // --------------------------------------------------------
-            // TOTAL
-            // --------------------------------------------------------
+            // 3. Đếm tổng số Student
+            var totalItems = students.Count();
 
-            int totalCount =
-                students.Count();
+            // 4. Phân trang
+            var pagedStudents = students
+                .OrderBy(s => s.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
-            // --------------------------------------------------------
-            // PAGINATION
-            // --------------------------------------------------------
-
-            int skip =
-                (pageNumber - 1) * pageSize;
-
-            var studentList =
-                students
-                    .OrderBy(x => x.Id)
-                    .Skip(skip)
-                    .Take(pageSize)
-                    .ToList();
-
-            // --------------------------------------------------------
-            // CONVERT
-            // --------------------------------------------------------
-
-            var vmList =
-                studentList
-                    .Select(x =>
-                        new StudentViewModel(x))
-                    .ToList();
+            // 5. Chuyển sang ViewModel
+            var result = pagedStudents
+                .Select(s => new StudentViewModel(s))
+                .ToList();
 
             return new PagedResult<StudentViewModel>
             {
-                Data = vmList,
-                TotalItems = totalCount,
+                Data = result,
+                TotalItems = totalItems,
                 PageNumber = pageNumber,
                 PageSize = pageSize
             };
@@ -108,18 +78,17 @@ namespace SchoolProject.Servies
         // GET STUDENT BY ID
         // ============================================================
 
-        public StudentViewModel? GetById(
-            int id)
+        public async Task<StudentViewModel?> GetById(int id)
         {
-            var student =
-                _unitOfWork
-                    .GenericRepository<Student>()
-                    .GetById(id);
+            var student = await _unitOfWork
+                .GenericRepository<Student>()
+                .GetByIdAsync(
+                    filter: s => s.Id == id&& !s.IsDeleted,
+                    include: query => query.Include(s => s.Major)
+                );
 
             if (student == null)
-            {
                 return null;
-            }
 
             return new StudentViewModel(student);
         }
@@ -127,185 +96,143 @@ namespace SchoolProject.Servies
         // ============================================================
         // ADD STUDENT
         // ============================================================
-        // Admin tạo Student:
-        //
-        // - FirstName
-        // - LastName
-        // - DOB
-        // - DateOfJoin
-        // - Email
-        // - Password
-        // - MajorId
-        // - YearLevel
-        //
-        // MajorId và YearLevel được Admin thiết lập ở đây.
-        // ============================================================
 
-        public async Task AddStudent(
-            CreateStudentViewModel student)
+        public async Task AddStudent(CreateStudentViewModel student)
         {
             if (student == null)
                 throw new Exception("Thông tin Student không được để trống.");
 
-            // ============================================================
-            // 1. CHECK YEAR LEVEL
-            // ============================================================
 
-            if (student.YearLevel < 1 || student.YearLevel > 4)
-                throw new Exception("YearLevel phải từ 1 đến 4.");
+            if (student.MajorId <= 0)
+                throw new Exception("MajorId không hợp lệ.");
 
-            // ============================================================
-            // 2. CHECK MAJOR
-            // ============================================================
+            if (string.IsNullOrWhiteSpace(student.Email))
+                throw new Exception("Email không được để trống.");
 
+            if (string.IsNullOrWhiteSpace(student.Password))
+                throw new Exception("Password không được để trống.");
+
+            // 1. KIỂM TRA MAJOR
             var major = _unitOfWork
                 .GenericRepository<Major>()
                 .GetById(student.MajorId);
 
+            if (student.YearLevel < 1 ||
+               student.YearLevel > major.StudyDurationYears)
+            {
+                throw new Exception(
+                    $"YearLevel phải từ 1 đến {major.StudyDurationYears}.");
+            }
             if (major == null)
                 throw new Exception("Không tìm thấy Major.");
 
-            // ============================================================
-            // 3. CHECK EMAIL
-            // ============================================================
-
+            // 2. KIỂM TRA EMAIL
             var existingUser = await _userManager
                 .FindByEmailAsync(student.Email);
 
             if (existingUser != null)
                 throw new Exception("Email đã tồn tại.");
 
-            // ============================================================
-            // 4. TẠO STUDENT TRƯỚC
-            // ============================================================
+            // 3. BẮT ĐẦU TRANSACTION
+            await using var transaction =
+                await _unitOfWork.BeginTransactionAsync();
 
-            var model = student.ConvertModel(student);
-
-            await _unitOfWork
-                .GenericRepository<Student>()
-                .AddAsync(model);
-
-            _unitOfWork.Save();
-
-            // ============================================================
-            // 5. KIỂM TRA STUDENT ĐÃ CÓ ID
-            // ============================================================
-
-            if (model.Id <= 0)
-                throw new Exception("Không thể tạo Student.");
-
-            // ============================================================
-            // 6. TẠO APPLICATION USER
-            // ============================================================
-
-            var appUser = new ApplicationUser
+            try
             {
-                UserName = student.Email,
-                Email = student.Email,
-                FullName = $"{student.FirstName} {student.LastName}",
-                StudentId = model.Id
-            };
+                // 4. TẠO STUDENT
+                var model = student.ConvertModel();
+                model.Status = StudentStatus.Studying;
+                model.IsDeleted = false;
 
-            var result = await _userManager
-                .CreateAsync(appUser, student.Password);
+                // Gán MajorId cho Student
+                model.MajorId = student.MajorId;
 
-            if (!result.Succeeded)
-            {
-                // Xóa Student nếu tạo User thất bại
-                _unitOfWork
+                await _unitOfWork
                     .GenericRepository<Student>()
-                    .Delete(model);
+                    .AddAsync(model);
 
-                _unitOfWork.Save();
+                await _unitOfWork.SaveAsync();
 
-                var errors = string.Join(
-                    ", ",
-                    result.Errors.Select(x => x.Description));
+                if (model.Id <= 0)
+                    throw new Exception("Không thể tạo Student.");
 
-                throw new Exception(errors);
-            }
-
-            // ============================================================
-            // 7. TẠO ROLE STUDENT NẾU CHƯA CÓ
-            // ============================================================
-
-            if (!await _roleManager.RoleExistsAsync("Student"))
-            {
-                var roleResult = await _roleManager
-                    .CreateAsync(new IdentityRole("Student"));
-
-                if (!roleResult.Succeeded)
+                // 5. TẠO APPLICATION USER
+                var appUser = new ApplicationUser
                 {
-                    await _userManager.DeleteAsync(appUser);
+                    UserName = student.Email,
+                    Email = student.Email,
+                    FullName = $"{student.FirstName} {student.LastName}",
+                    StudentId = model.Id
+                };
 
-                    _unitOfWork
-                        .GenericRepository<Student>()
-                        .Delete(model);
+                var userResult = await _userManager
+                    .CreateAsync(appUser, student.Password);
 
-                    _unitOfWork.Save();
-
+                if (!userResult.Succeeded)
+                {
                     var errors = string.Join(
                         ", ",
-                        roleResult.Errors.Select(x => x.Description));
+                        userResult.Errors.Select(x => x.Description));
 
-                    throw new Exception(errors);
+                    throw new Exception(
+                        $"Tạo tài khoản thất bại: {errors}");
                 }
-            }
 
-            // ============================================================
-            // 8. ADD ROLE STUDENT
-            // ============================================================
+                // 6. TẠO ROLE STUDENT NẾU CHƯA CÓ
+                if (!await _roleManager.RoleExistsAsync("Student"))
+                {
+                    var roleResult = await _roleManager
+                        .CreateAsync(new IdentityRole("Student"));
 
-            var roleAddResult = await _userManager
-                .AddToRoleAsync(appUser, "Student");
+                    if (!roleResult.Succeeded)
+                    {
+                        var errors = string.Join(
+                            ", ",
+                            roleResult.Errors.Select(x => x.Description));
 
-            if (!roleAddResult.Succeeded)
-            {
-                await _userManager.DeleteAsync(appUser);
+                        throw new Exception(
+                            $"Tạo role Student thất bại: {errors}");
+                    }
+                }
+
+                // 7. GÁN ROLE CHO USER
+                var roleAddResult = await _userManager
+                    .AddToRoleAsync(appUser, "Student");
+
+                if (!roleAddResult.Succeeded)
+                {
+                    var errors = string.Join(
+                        ", ",
+                        roleAddResult.Errors.Select(x => x.Description));
+
+                    throw new Exception(
+                        $"Gán role Student thất bại: {errors}");
+                }
+
+                // 8. GÁN KEYID
+                // KeyId lưu ApplicationUser.Id
+                model.KeyId = appUser.Id;
 
                 _unitOfWork
                     .GenericRepository<Student>()
-                    .Delete(model);
+                    .Update(model);
 
-                _unitOfWork.Save();
+                await _unitOfWork.SaveAsync();
 
-                var errors = string.Join(
-                    ", ",
-                    roleAddResult.Errors.Select(x => x.Description));
-
-                throw new Exception(errors);
+                // 9. COMMIT TRANSACTION
+                await transaction.CommitAsync();
             }
-
-            // ============================================================
-            // 9. LƯU STUDENT
-            // ============================================================
-
-            // KeyId lưu ApplicationUser.Id
-            model.KeyId = appUser.Id;
-
-            _unitOfWork
-                .GenericRepository<Student>()
-                .Update(model);
-
-            _unitOfWork.Save();
+            catch
+            {
+                // Có lỗi: hoàn tác tất cả thao tác trong transaction
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         // ============================================================
         // UPDATE STUDENT
-        // ============================================================
-        //
-        // KHÔNG UPDATE:
-        // - MajorId
-        // - YearLevel
-        //
-        // Hai trường này chỉ do Admin quản lý.
-        //
-        // Hàm này chỉ cập nhật:
-        // - FirstName
-        // - LastName
-        // - DOB
-        // - DateOfJoin
-        // - Email
+        // Không cập nhật MajorId và YearLevel
         // ============================================================
 
         public async Task UpdateStudent(
@@ -313,245 +240,157 @@ namespace SchoolProject.Servies
             CreateStudentViewModel student)
         {
             if (student == null)
-            {
-                throw new Exception(
-                    "Thông tin Student không được để trống.");
-            }
+                throw new Exception("Thông tin Student không được để trống.");
 
-            var repository =
-                _unitOfWork
-                    .GenericRepository<Student>();
+            var repository = _unitOfWork
+                .GenericRepository<Student>();
 
-            // --------------------------------------------------------
-            // FIND STUDENT
-            // --------------------------------------------------------
-
-            var existingStudent =
-                repository.GetById(id);
+            var existingStudent = repository.GetAll(filter: s => s.Id == id && !s.IsDeleted)
+    .FirstOrDefault();
 
             if (existingStudent == null)
+                throw new Exception("Không tìm thấy Student.");
+
+            await using var transaction =
+                await _unitOfWork.BeginTransactionAsync();
+
+            try
             {
-                throw new Exception(
-                    "Không tìm thấy Student.");
-            }
+                // 1. CẬP NHẬT THÔNG TIN STUDENT
+                existingStudent.FirstName = student.FirstName;
+                existingStudent.LastName = student.LastName;
+                existingStudent.DOB = student.DOB;
+                existingStudent.DateOfJoin = student.DateOfJoin;
 
-            // --------------------------------------------------------
-            // UPDATE PERSONAL INFORMATION
-            // --------------------------------------------------------
+                // Không cập nhật:
+                // existingStudent.MajorId
+                // existingStudent.YearLevel
 
-            existingStudent.FirstName =
-                student.FirstName;
+                // 2. TÌM APPLICATION USER
+                var appUser = await _userManager
+                    .FindByIdAsync(existingStudent.KeyId);
 
-            existingStudent.LastName =
-                student.LastName;
-
-            existingStudent.DOB =
-                student.DOB;
-
-            existingStudent.DateOfJoin =
-                student.DateOfJoin;
-
-            // --------------------------------------------------------
-            // KHÔNG ĐƯỢC UPDATE:
-            //
-            // existingStudent.MajorId
-            // existingStudent.YearLevel
-            //
-            // Major và YearLevel do Admin quản lý.
-            // --------------------------------------------------------
-
-            // --------------------------------------------------------
-            // FIND APPLICATION USER
-            // --------------------------------------------------------
-
-            var appUser =
-                await _userManager
-                    .FindByIdAsync(
-                        existingStudent.KeyId);
-
-            if (appUser != null)
-            {
-                bool userChanged = false;
-
-                // ----------------------------------------------------
-                // UPDATE FULL NAME
-                // ----------------------------------------------------
-
-                var fullName =
-                    $"{student.FirstName} {student.LastName}";
-
-                if (appUser.FullName != fullName)
+                if (appUser != null)
                 {
+                    // 3. CẬP NHẬT FULL NAME
                     appUser.FullName =
-                        fullName;
+                        $"{student.FirstName} {student.LastName}";
 
-                    userChanged = true;
-                }
-
-                // ----------------------------------------------------
-                // UPDATE EMAIL
-                // ----------------------------------------------------
-
-                if (!string.IsNullOrWhiteSpace(
-                    student.Email) &&
-                    appUser.Email != student.Email)
-                {
-                    var emailExists =
-                        await _userManager
-                            .FindByEmailAsync(
-                                student.Email);
-
-                    if (emailExists != null &&
-                        emailExists.Id != appUser.Id)
+                    // 4. CẬP NHẬT EMAIL VÀ USERNAME
+                    if (!string.IsNullOrWhiteSpace(student.Email) &&
+                        appUser.Email != student.Email)
                     {
-                        throw new Exception(
-                            "Email đã tồn tại.");
-                    }
+                        var emailExists = await _userManager
+                            .FindByEmailAsync(student.Email);
 
-                    appUser.Email =
-                        student.Email;
+                        if (emailExists != null &&
+                            emailExists.Id != appUser.Id)
+                        {
+                            throw new Exception("Email đã tồn tại.");
+                        }
 
-                    appUser.UserName =
-                        student.Email;
+                        var emailResult = await _userManager
+                            .SetEmailAsync(appUser, student.Email);
 
-                    userChanged = true;
-                }
-
-                // ----------------------------------------------------
-                // SAVE APPLICATION USER
-                // ----------------------------------------------------
-
-                if (userChanged)
-                {
-                    var result =
-                        await _userManager
-                            .UpdateAsync(appUser);
-
-                    if (!result.Succeeded)
-                    {
-                        var errors =
-                            string.Join(
+                        if (!emailResult.Succeeded)
+                        {
+                            var errors = string.Join(
                                 ", ",
-                                result.Errors.Select(
-                                    x => x.Description));
+                                emailResult.Errors.Select(x => x.Description));
 
-                        throw new Exception(errors);
+                            throw new Exception(
+                                $"Cập nhật Email thất bại: {errors}");
+                        }
+
+                        var userNameResult = await _userManager
+                            .SetUserNameAsync(appUser, student.Email);
+
+                        if (!userNameResult.Succeeded)
+                        {
+                            var errors = string.Join(
+                                ", ",
+                                userNameResult.Errors.Select(x => x.Description));
+
+                            throw new Exception(
+                                $"Cập nhật Username thất bại: {errors}");
+                        }
+                    }
+
+                    // 5. CẬP NHẬT FULL NAME
+                    var updateResult = await _userManager
+                        .UpdateAsync(appUser);
+
+                    if (!updateResult.Succeeded)
+                    {
+                        var errors = string.Join(
+                            ", ",
+                            updateResult.Errors.Select(x => x.Description));
+
+                        throw new Exception(
+                            $"Cập nhật tài khoản thất bại: {errors}");
                     }
                 }
+
+                // 6. LƯU STUDENT
+                repository.Update(existingStudent);
+
+                await _unitOfWork.SaveAsync();
+
+                await transaction.CommitAsync();
             }
-
-            // --------------------------------------------------------
-            // SAVE STUDENT
-            // --------------------------------------------------------
-
-            repository.Update(
-                existingStudent);
-
-            _unitOfWork.Save();
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         // ============================================================
         // DELETE STUDENT
         // ============================================================
 
-        public async Task DeleteStudent(
-            int id)
+        public async Task DeleteStudent(int id)
         {
-            var repository =
-                _unitOfWork
-                    .GenericRepository<Student>();
+            var repository = _unitOfWork
+                .GenericRepository<Student>();
 
-            // --------------------------------------------------------
-            // FIND STUDENT
-            // --------------------------------------------------------
+            // 1. Tìm Student chưa bị xóa
+            var student = repository.GetById(id);
 
-            var student =
-                repository.GetById(id);
+            if (student == null || student.IsDeleted)
+                throw new Exception("Không tìm thấy Student.");
 
-            if (student == null)
-            {
+            // 2. Không cho xóa sinh viên đang bảo lưu
+            if (student.Status == StudentStatus.OnLeave)
                 throw new Exception(
-                    "Không tìm thấy Student.");
-            }
+                    "Không thể xóa sinh viên đang trong thời gian bảo lưu.");
 
-            // --------------------------------------------------------
-            // CHECK ENROLL
-            // --------------------------------------------------------
-
-            var hasEnroll =
-                _unitOfWork
-                    .GenericRepository<Enroll>()
-                    .GetAll()
-                    .Any(x =>
-                        x.StudentId == id);
+            // 3. Kiểm tra Enroll
+            var hasEnroll = _unitOfWork
+                .GenericRepository<Enroll>()
+                .GetAll()
+                .Any(x => x.StudentId == id);
 
             if (hasEnroll)
-            {
                 throw new Exception(
                     "Không thể xóa Student vì Student đã đăng ký môn học.");
-            }
 
-            // --------------------------------------------------------
-            // CHECK FEE
-            // --------------------------------------------------------
-
-            var hasFee =
-                _unitOfWork
-                    .GenericRepository<Fee>()
-                    .GetAll()
-                    .Any(x =>
-                        x.StudentId == id);
+            // 4. Kiểm tra Fee
+            var hasFee = _unitOfWork
+                .GenericRepository<Fee>()
+                .GetAll()
+                .Any(x => x.StudentId == id);
 
             if (hasFee)
-            {
                 throw new Exception(
                     "Không thể xóa Student vì Student đã có học phí.");
-            }
 
-            // --------------------------------------------------------
-            // GET APPLICATION USER
-            // --------------------------------------------------------
+            // 5. Soft Delete
+            student.IsDeleted = true;
 
-            ApplicationUser? appUser = null;
+            repository.Update(student);
 
-            if (!string.IsNullOrWhiteSpace(
-                student.KeyId))
-            {
-                appUser =
-                    await _userManager
-                        .FindByIdAsync(
-                            student.KeyId);
-            }
-
-            // --------------------------------------------------------
-            // DELETE STUDENT
-            // --------------------------------------------------------
-
-            repository.Delete(student);
-
-            _unitOfWork.Save();
-
-            // --------------------------------------------------------
-            // DELETE APPLICATION USER
-            // --------------------------------------------------------
-
-            if (appUser != null)
-            {
-                var result =
-                    await _userManager
-                        .DeleteAsync(appUser);
-
-                if (!result.Succeeded)
-                {
-                    var errors =
-                        string.Join(
-                            ", ",
-                            result.Errors.Select(
-                                x => x.Description));
-
-                    throw new Exception(errors);
-                }
-            }
+            await _unitOfWork.SaveAsync();
         }
 
         // ============================================================
@@ -562,7 +401,8 @@ namespace SchoolProject.Servies
         {
             return _unitOfWork
                 .GenericRepository<Student>()
-                .GetAll()
+                .GetAll(
+                filter:s=>!s.IsDeleted)
                 .Count();
         }
     }

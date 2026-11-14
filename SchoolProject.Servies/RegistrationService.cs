@@ -1,5 +1,4 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SchoolProject.Models;
 using SchoolProject.Repositories;
 using SchoolProject.ViewModels;
@@ -15,378 +14,414 @@ namespace SchoolProject.Servies
             _unitOfWork = unitOfWork;
         }
 
-        // =====================================================
-        // GET AVAILABLE CLASS SESSIONS
-        // =====================================================
-        public async Task<List<ClassSessionViewModel>>
-            GetAvailableClassSessions(
-                int studentId,
-                int sessionId)
+        private static bool HoldsSeat(Enroll enroll)
         {
-            // 1. CHECK STUDENT
-            var student = await _unitOfWork
-                .GenericRepository<Student>()
+            return enroll.Status != EnrollStatus.Dropped &&
+                   enroll.Status != EnrollStatus.PaymentExpired;
+        }
+
+        // ============================================================
+        // 1. GET AVAILABLE CLASS SESSIONS
+        // ============================================================
+        public async Task<List<ClassSessionViewModel>> GetAvailableClassSessions(
+            int studentId,
+            int sessionId)
+        {
+            var student = await _unitOfWork.GenericRepository<Student>()
                 .GetByIdAsync(x => x.Id == studentId);
 
             if (student == null)
                 throw new Exception("Không tìm thấy sinh viên.");
 
-            // 2. CHECK SESSION
-            var session = await _unitOfWork
-                .GenericRepository<Session>()
+            var session = await _unitOfWork.GenericRepository<Session>()
                 .GetByIdAsync(x => x.Id == sessionId);
 
             if (session == null)
                 throw new Exception("Không tìm thấy Session.");
 
-            // 3. LẤY SUBJECT ĐÃ ĐĂNG KÝ
-            var registeredSubjectIds = _unitOfWork
-                .GenericRepository<Enroll>()
-                .GetAll()
-                .Where(x =>
-                    x.StudentId == studentId &&
-                    x.SessionId == sessionId)
+            DateTime now = DateTime.Now;
+
+            var enrolls = _unitOfWork.GenericRepository<Enroll>()
+                .GetAll(x => x.StudentId == studentId && x.SessionId == sessionId)
+                .ToList();
+
+            // Chỉ chặn môn đang giữ chỗ hoặc đã có kết quả.
+            // Dropped/PaymentExpired có thể được đăng ký lại bằng cách tái sử dụng Enroll cũ.
+            var unavailableSubjectIds = enrolls
+                .Where(x => HoldsSeat(x) ||
+                            x.Status == EnrollStatus.Completed ||
+                            x.Status == EnrollStatus.Failed)
                 .Select(x => x.SubjectId)
                 .ToHashSet();
 
-            // 4. LẤY CLASS SESSION
-            var allClassSessions = _unitOfWork
+            var classSessions = _unitOfWork
                 .GenericRepository<ClassSession>()
                 .GetAll(
+                    x => x.SessionId == sessionId,
                     include: query => query
                         .Include(x => x.Class)
-                        .Include(x => x.Subject)
-                            .ThenInclude(x => x!.SubjectYears)
-                        .Include(x => x.Session)
-                        .Include(x => x.HomeroomTeacher))
+                        .Include(x => x.Subject).ThenInclude(x => x!.MajorSubjects)
+                        .Include(x => x.HomeroomTeacher)
+                        .Include(x => x.Enrolls))
                 .ToList();
 
-            // 5. FILTER
-            var availableClassSessions = new List<ClassSession>();
+            var result = new List<ClassSessionViewModel>();
 
-            foreach (var x in allClassSessions)
+            foreach (var classSession in classSessions)
             {
-                if (x.SessionId != sessionId)
+                if (classSession.Status != ClassSessionStatus.OpenForRegistration)
                     continue;
 
-                if (x.Subject == null)
+                if (now < classSession.RegistrationStart ||
+                    now >= classSession.RegistrationEnd)
                     continue;
 
-                // CHECK MAJOR
-                if (x.Subject.MajorId != student.MajorId)
+                if (classSession.Subject == null)
                     continue;
 
-                // CHECK YEAR LEVEL
-                var yearOk = x.Subject.SubjectYears.Any(y =>
-                    y.YearLevel <= student.YearLevel);
+                int actualCount = classSession.Enrolls?
+                    .Where(HoldsSeat)
+                    .Select(x => x.StudentId)
+                    .Distinct()
+                    .Count() ?? 0;
 
-                if (!yearOk)
+                if (actualCount >= classSession.MaxStudents)
                     continue;
 
-                // CHECK ĐÃ ĐĂNG KÝ
-                if (registeredSubjectIds.Contains(x.SubjectId))
+                var majorSubject = classSession.Subject.MajorSubjects
+                    .FirstOrDefault(x => x.MajorId == student.MajorId);
+
+                if (majorSubject == null || majorSubject.YearLevel > student.YearLevel)
                     continue;
 
-                // CHECK SESSION SUBJECT
-                var sessionSubject = _unitOfWork
-                    .GenericRepository<SessionSubject>()
-                    .GetAll()
-                    .FirstOrDefault(ss =>
-                        ss.SessionId == sessionId &&
-                        ss.SubjectId == x.SubjectId);
-
-                if (sessionSubject == null || !sessionSubject.IsOpen)
+                if (unavailableSubjectIds.Contains(classSession.SubjectId))
                     continue;
 
-                availableClassSessions.Add(x);
+                //bool isOpenInSession = _unitOfWork
+                //    .GenericRepository<SessionSubject>()
+                //    .Exists(x => x.SessionId == sessionId &&
+                //                 x.SubjectId == classSession.SubjectId &&
+                //                 x.IsOpen);
+
+                //if (!isOpenInSession)
+                //    continue;
+
+                result.Add(new ClassSessionViewModel
+                {
+                    Id = classSession.Id,
+                    ClassId = classSession.ClassId,
+                    ClassName = classSession.Class?.Name,
+                    SubjectId = classSession.SubjectId,
+                    SubjectName = classSession.Subject.Name,
+                    SessionId = classSession.SessionId,
+                    HomeroomTeacherId = classSession.HomeroomTeacherId,
+                    HomeroomTeacherName = classSession.HomeroomTeacher == null
+                        ? null
+                        : $"{classSession.HomeroomTeacher.FirstName} {classSession.HomeroomTeacher.LastName}"
+                });
             }
 
-            // 6. RETURN VIEW MODEL
-            return availableClassSessions
-                .Select(x => new ClassSessionViewModel
-                {
-                    Id = x.Id,
-                    ClassId = x.ClassId,
-                    ClassName = x.Class?.Name,
-                    SubjectId = x.SubjectId,
-                    SubjectName = x.Subject?.Name,
-                    SessionId = x.SessionId,
-                    HomeroomTeacherId = x.HomeroomTeacherId,
-                    HomeroomTeacherName = x.HomeroomTeacher != null
-                        ? $"{x.HomeroomTeacher.FirstName} {x.HomeroomTeacher.LastName}"
-                        : null
-                })
-                .ToList();
+            return result;
         }
 
-        // =====================================================
-        // REGISTER CLASS SESSION + AUTO CREATE FEE
-        // =====================================================
-        public async Task<bool> RegisterClassSession(
-            int studentId,
-            int classSessionId)
+        // ============================================================
+        // 2. REGISTER CLASS SESSION + CREATE/REUSE FEE
+        // ============================================================
+        public async Task<bool> RegisterClassSession(int studentId, int classSessionId)
         {
-            // 1. LẤY STUDENT
-            var student = await _unitOfWork
-                .GenericRepository<Student>()
+            await using var transaction = await _unitOfWork.BeginTransactionAsync();
+
+            var student = await _unitOfWork.GenericRepository<Student>()
                 .GetByIdAsync(x => x.Id == studentId);
 
             if (student == null)
                 throw new Exception("Không tìm thấy sinh viên.");
 
-            // 2. LẤY CLASS SESSION
             var classSession = await _unitOfWork
                 .GenericRepository<ClassSession>()
                 .GetByIdAsync(
                     x => x.Id == classSessionId,
                     include: query => query
-                        .Include(x => x.Subject)
-                            .ThenInclude(x => x!.SubjectYears)
+                        .Include(x => x.Subject).ThenInclude(x => x!.MajorSubjects)
                         .Include(x => x.Session)
-                        .Include(x => x.Class)
-                        .Include(x => x.HomeroomTeacher));
+                        .Include(x => x.Enrolls));
 
             if (classSession == null)
                 throw new Exception("Không tìm thấy ClassSession.");
 
-            // 3. CHECK SUBJECT
-            if (classSession.Subject == null)
-                throw new Exception("ClassSession chưa có môn học.");
+            if (classSession.Subject == null || classSession.Session == null)
+                throw new Exception("ClassSession chưa được cấu hình môn học hoặc học kỳ.");
 
-            var subject = classSession.Subject;
+            DateTime now = DateTime.Now;
 
-            // 4. CHECK SESSION
-            if (classSession.Session == null)
-                throw new Exception("ClassSession chưa có Session.");
+            if (classSession.Status != ClassSessionStatus.OpenForRegistration)
+                throw new Exception("Lớp học phần hiện không mở đăng ký.");
 
-            var session = classSession.Session;
+            if (now < classSession.RegistrationStart || now >= classSession.RegistrationEnd)
+                throw new Exception("Hiện không nằm trong thời hạn đăng ký lớp học phần.");
 
-            // 5. CHECK MAJOR
-            if (subject.MajorId != student.MajorId)
-                throw new Exception(
-                    "Lớp học không thuộc chuyên ngành của sinh viên.");
+            var enrollRepository = _unitOfWork.GenericRepository<Enroll>();
+            var feeRepository = _unitOfWork.GenericRepository<Fee>();
+            var classRepository = _unitOfWork.GenericRepository<ClassSession>();
 
-            // 6. CHECK YEAR LEVEL
-            var eligible = subject.SubjectYears.Any(x =>
-                x.YearLevel <= student.YearLevel);
-
-            if (!eligible)
-                throw new Exception(
-                    "Sinh viên chưa đủ năm để đăng ký môn này.");
-
-            // 7. CHECK SESSION SUBJECT
-            var sessionSubject = _unitOfWork
-                .GenericRepository<SessionSubject>()
-                .GetAll()
-                .FirstOrDefault(x =>
-                    x.SubjectId == classSession.SubjectId &&
-                    x.SessionId == classSession.SessionId &&
-                    x.IsOpen);
-
-            if (sessionSubject == null)
-                throw new Exception(
-                    "Môn học chưa mở đăng ký trong học kỳ này.");
-
-            // 8. CHECK DUPLICATE
-            var enrollRepository =
-                _unitOfWork.GenericRepository<Enroll>();
-
-            var exists = enrollRepository.Exists(x =>
-                x.StudentId == studentId &&
-                x.SubjectId == classSession.SubjectId &&
-                x.SessionId == classSession.SessionId);
-
-            if (exists)
-                throw new Exception(
-                    "Sinh viên đã đăng ký môn học này.");
-
-            // 9. TÍNH TỔNG TÍN CHỈ
-            var currentEnrollments = enrollRepository
-                .GetAll(include: query =>
-                    query.Include(x => x.Subject))
-                .Where(x =>
-                    x.StudentId == studentId &&
-                    x.SessionId == session.Id)
+            var currentEnrolls = enrollRepository
+                .GetAll(x => x.ClassSessionId == classSessionId)
                 .ToList();
 
-            var currentCredits = currentEnrollments
+            int actualCount = currentEnrolls
+                .Where(HoldsSeat)
+                .Select(x => x.StudentId)
+                .Distinct()
+                .Count();
+
+            if (actualCount >= classSession.MaxStudents)
+                throw new Exception("Lớp học phần đã đủ số lượng sinh viên.");
+
+            var subject = classSession.Subject;
+            var session = classSession.Session;
+
+            var majorSubject = subject.MajorSubjects
+                .FirstOrDefault(x => x.MajorId == student.MajorId);
+
+            if (majorSubject == null)
+                throw new Exception("Môn học không thuộc chuyên ngành của sinh viên.");
+
+            if (majorSubject.YearLevel > student.YearLevel)
+                throw new Exception("Sinh viên chưa đủ năm để đăng ký môn này.");
+
+            //bool sessionSubjectIsOpen = _unitOfWork
+            //    .GenericRepository<SessionSubject>()
+            //    .Exists(x => x.SessionId == session.Id &&
+            //                 x.SubjectId == subject.Id &&
+            //                 x.IsOpen);
+
+            //if (!sessionSubjectIsOpen)
+            //    throw new Exception("Môn học chưa mở đăng ký trong học kỳ này.");
+
+            // Unique index StudentId + SubjectId + SessionId:
+            // tái sử dụng Enroll đã Dropped/PaymentExpired thay vì tạo bản ghi thứ hai.
+            var existingEnroll = await enrollRepository.GetByIdAsync(
+                x => x.StudentId == studentId &&
+                     x.SubjectId == subject.Id &&
+                     x.SessionId == session.Id,
+                include: query => query
+                    .Include(x => x.Attendances)
+                    .Include(x => x.StudentScores));
+
+            if (existingEnroll != null)
+            {
+                if (existingEnroll.Status != EnrollStatus.Dropped &&
+                    existingEnroll.Status != EnrollStatus.PaymentExpired)
+                    throw new Exception("Sinh viên đã đăng ký môn học này.");
+
+                if (existingEnroll.Attendances.Any() || existingEnroll.StudentScores.Any())
+                    throw new Exception("Không thể đăng ký lại vì đăng ký cũ đã phát sinh điểm danh hoặc điểm số.");
+            }
+
+            // Tính tín chỉ của các môn còn hiệu lực trong học kỳ.
+            var currentStudentEnrolls = enrollRepository
+                .GetAll(
+                    x => x.StudentId == studentId && x.SessionId == session.Id,
+                    include: query => query.Include(x => x.Subject))
+                .Where(HoldsSeat)
+                .ToList();
+
+            int currentCredits = currentStudentEnrolls
                 .Where(x => x.Subject != null)
                 .Sum(x => x.Subject!.Credits);
 
-            var newSubjectCredits = subject.Credits;
+            if (subject.Credits <= 0)
+                throw new Exception("Số tín chỉ của môn học không hợp lệ.");
 
-            if (newSubjectCredits <= 0)
-                throw new Exception(
-                    "Số tín chỉ của môn học không hợp lệ.");
-
-            var totalCredits = currentCredits + newSubjectCredits;
-
+            int totalCredits = currentCredits + subject.Credits;
             if (totalCredits > session.MaxCredits)
             {
                 throw new Exception(
-                    $"Bạn đã đăng ký {currentCredits} tín chỉ. " +
-                    $"Môn {subject.Name} có {newSubjectCredits} tín chỉ. " +
-                    $"Tổng là {totalCredits} tín chỉ, vượt quá giới hạn " +
-                    $"{session.MaxCredits} tín chỉ của {session.Name}.");
+                    $"Bạn đã đăng ký {currentCredits} tín chỉ. Môn {subject.Name} có {subject.Credits} tín chỉ. " +
+                    $"Tổng {totalCredits} tín chỉ vượt quá giới hạn {session.MaxCredits} tín chỉ của {session.Name}.");
             }
 
-            // 10. KIỂM TRA ĐƠN GIÁ TÍN CHỈ
-            var tuitionRateRepository =
-                _unitOfWork.GenericRepository<TuitionRate>();
+            var tuitionRate = _unitOfWork.GenericRepository<TuitionRate>()
+                .GetAll(x => x.SessionId == session.Id)
+                .FirstOrDefault();
 
-            var tuitionRate = tuitionRateRepository
-                .GetAll()
-                .FirstOrDefault(x =>
-                    x.SessionId == classSession.SessionId);
+            if (tuitionRate == null || tuitionRate.PricePerCredit <= 0)
+                throw new Exception("Học kỳ này chưa được cấu hình đơn giá tín chỉ hợp lệ.");
 
-            if (tuitionRate == null)
-                throw new Exception(
-                    "Học kỳ này chưa được cấu hình đơn giá tín chỉ.");
+            var existingFee = await feeRepository.GetByIdAsync(
+                x => x.StudentId == studentId &&
+                     x.SubjectId == subject.Id &&
+                     x.SessionId == session.Id);
 
-            if (tuitionRate.PricePerCredit <= 0)
-                throw new Exception(
-                    "Đơn giá tín chỉ không hợp lệ.");
-
-            // 11. KIỂM TRA FEE ĐÃ TỒN TẠI CHƯA
-            var feeRepository =
-                _unitOfWork.GenericRepository<Fee>();
-
-            var existingFee = feeRepository
-                .GetAll()
-                .FirstOrDefault(x =>
-                    x.StudentId == studentId &&
-                    x.SubjectId == classSession.SubjectId &&
-                    x.SessionId == classSession.SessionId);
-
-            // 12. TẠO ENROLL
-            var enroll = new Enroll
+            if (existingFee != null &&
+                (existingFee.Status != "Unpaid" || existingFee.FundsStatus != "NotReceived"))
             {
-                StudentId = studentId,
-                SubjectId = classSession.SubjectId,
-                SessionId = classSession.SessionId,
-                ClassSessionId = classSession.Id
-            };
+                throw new Exception(
+                    "Học phí của môn này đã phát sinh giao dịch hoặc đã thanh toán; không thể tạo đăng ký mới tự động.");
+            }
 
-            await enrollRepository.AddAsync(enroll);
+            if (existingEnroll == null)
+            {
+                existingEnroll = new Enroll
+                {
+                    StudentId = studentId,
+                    SubjectId = subject.Id,
+                    SessionId = session.Id,
+                    ClassSessionId = classSession.Id,
+                    Status = EnrollStatus.Registered,
+                    RegisteredAt = now
+                };
+                await enrollRepository.AddAsync(existingEnroll);
+            }
+            else
+            {
+                existingEnroll.ClassSessionId = classSession.Id;
+                existingEnroll.Status = EnrollStatus.Registered;
+                existingEnroll.RegisteredAt = now;
+                enrollRepository.Update(existingEnroll);
+            }
 
-            // 13. TỰ ĐỘNG TẠO FEE
             if (existingFee == null)
             {
-                var credits = subject.Credits;
-                var pricePerCredit = tuitionRate.PricePerCredit;
-                var amount = credits * pricePerCredit;
+                decimal amount = subject.Credits * tuitionRate.PricePerCredit;
 
                 var fee = new Fee
                 {
                     StudentId = studentId,
-                    SubjectId = classSession.SubjectId,
-                    SessionId = classSession.SessionId,
-                    Credits = credits,
-                    PricePerCredit = pricePerCredit,
+                    SubjectId = subject.Id,
+                    SessionId = session.Id,
+                    Credits = subject.Credits,
+                    PricePerCredit = tuitionRate.PricePerCredit,
                     Amount = amount,
-                    DueDate = DateTime.Now.AddDays(30),
-                    Status = "Unpaid"
+                    LateFee = 0,
+                    TotalAmount = amount,
+                    // Ngày thanh toán chính thức sẽ được ClassService thiết lập
+                    // khi Admin mở đợt thanh toán sau khi đóng đăng ký.
+                    PaymentStartDate = classSession.PaymentStartDate ?? classSession.RegistrationEnd,
+                    DueDate = classSession.PaymentEndDate ?? classSession.RegistrationEnd.AddDays(7),
+                    Status = "Unpaid",
+                    FundsStatus = "NotReceived"
                 };
 
-                feeRepository.Add(fee);
+                await feeRepository.AddAsync(fee);
             }
 
-            // 14. SAVE
-            _unitOfWork.Save();
+            classSession.EnrolledCount = actualCount + 1;
+            if (classSession.EnrolledCount >= classSession.MaxStudents)
+                classSession.Status = ClassSessionStatus.Full;
+
+            classRepository.Update(classSession);
+
+            await _unitOfWork.SaveAsync();
+            await transaction.CommitAsync();
 
             return true;
         }
 
-        // =====================================================
-        // GET MY ENROLLMENTS
-        // =====================================================
-        public async Task<List<EnrollViewModel>>
-            GetMyEnrollments(
-                int studentId,
-                int sessionId)
+        // ============================================================
+        // 3. GET MY ENROLLMENTS
+        // ============================================================
+        public async Task<List<EnrollViewModel>> GetMyEnrollments(int studentId, int sessionId)
         {
-            // CHECK STUDENT
-            var student = await _unitOfWork
-                .GenericRepository<Student>()
-                .GetByIdAsync(x => x.Id == studentId);
+            var studentExists = _unitOfWork.GenericRepository<Student>()
+                .Exists(x => x.Id == studentId);
 
-            if (student == null)
+            if (!studentExists)
                 throw new Exception("Không tìm thấy sinh viên.");
 
-            // CHECK SESSION
-            var session = await _unitOfWork
-                .GenericRepository<Session>()
-                .GetByIdAsync(x => x.Id == sessionId);
+            var sessionExists = _unitOfWork.GenericRepository<Session>()
+                .Exists(x => x.Id == sessionId);
 
-            if (session == null)
+            if (!sessionExists)
                 throw new Exception("Không tìm thấy Session.");
 
-            // GET ENROLLS
-            var enrolls = await _unitOfWork
-                .GenericRepository<Enroll>()
+            var enrolls = await _unitOfWork.GenericRepository<Enroll>()
                 .GetAllAsync(
                     include: query => query
                         .Include(x => x.Subject)
                         .Include(x => x.Session)
-                        .Include(x => x.ClassSession)
-                            .ThenInclude(x => x!.Class)
-                        .Include(x => x.ClassSession)
-                            .ThenInclude(x => x!.HomeroomTeacher));
+                        .Include(x => x.ClassSession).ThenInclude(x => x!.Class)
+                        .Include(x => x.ClassSession).ThenInclude(x => x!.HomeroomTeacher),
+                    filter: x => x.StudentId == studentId && x.SessionId == sessionId);
 
-            // FILTER
-            return enrolls
-                .Where(x =>
-                    x.StudentId == studentId &&
-                    x.SessionId == sessionId)
-                .Select(x => new EnrollViewModel(x))
-                .ToList();
+            return enrolls.Select(x => new EnrollViewModel(x)).ToList();
         }
 
-        // =====================================================
-        // CANCEL REGISTRATION
-        // =====================================================
-        public async Task<bool> CancelRegistration(
-            int studentId,
-            int classSessionId)
+        // ============================================================
+        // 4. CANCEL REGISTRATION
+        // ============================================================
+        public async Task<bool> CancelRegistration(int studentId, int classSessionId)
         {
-            var enrollRepository =
-                _unitOfWork.GenericRepository<Enroll>();
+            await using var transaction = await _unitOfWork.BeginTransactionAsync();
 
-            var enroll = await enrollRepository.GetByIdAsync(x =>
-                x.StudentId == studentId &&
-                x.ClassSessionId == classSessionId);
+            var enrollRepository = _unitOfWork.GenericRepository<Enroll>();
+            var feeRepository = _unitOfWork.GenericRepository<Fee>();
+            var classRepository = _unitOfWork.GenericRepository<ClassSession>();
+
+            var enroll = await enrollRepository.GetByIdAsync(
+                x => x.StudentId == studentId && x.ClassSessionId == classSessionId,
+                include: query => query
+                    .Include(x => x.Attendances)
+                    .Include(x => x.StudentScores));
 
             if (enroll == null)
-                throw new Exception(
-                    "Không tìm thấy đăng ký lớp học.");
+                throw new Exception("Không tìm thấy đăng ký lớp học.");
 
-            // KIỂM TRA HỌC PHÍ
-            var feeRepository =
-                _unitOfWork.GenericRepository<Fee>();
+            if (enroll.Status != EnrollStatus.Registered)
+                throw new Exception("Chỉ được hủy đăng ký khi đăng ký còn ở trạng thái Registered.");
 
-            var fee = feeRepository.GetAll()
-                .FirstOrDefault(x =>
-                    x.StudentId == studentId &&
-                    x.SubjectId == enroll.SubjectId &&
-                    x.SessionId == enroll.SessionId);
+            if (enroll.Attendances.Any() || enroll.StudentScores.Any())
+                throw new Exception("Không thể hủy vì đăng ký đã phát sinh điểm danh hoặc điểm số.");
 
-            if (fee != null && fee.Status == "Paid")
+            var classSession = await classRepository.GetByIdAsync(
+                x => x.Id == classSessionId);
+
+            if (classSession == null)
+                throw new Exception("Không tìm thấy lớp học phần.");
+
+            DateTime now = DateTime.Now;
+            if ((classSession.Status != ClassSessionStatus.OpenForRegistration &&
+                 classSession.Status != ClassSessionStatus.Full) ||
+                now < classSession.RegistrationStart ||
+                now >= classSession.RegistrationEnd)
             {
-                throw new Exception(
-                    "Không thể hủy đăng ký vì học phí đã thanh toán. " +
-                    "Vui lòng xử lý hoàn phí theo quy định của trường.");
+                throw new Exception("Chỉ được hủy đăng ký trong thời hạn đăng ký lớp học phần.");
             }
 
-            // XÓA FEE CHƯA THANH TOÁN KHI HỦY ĐĂNG KÝ
-            if (fee != null)
+            var fee = await feeRepository.GetByIdAsync(
+                x => x.StudentId == studentId &&
+                     x.SubjectId == enroll.SubjectId &&
+                     x.SessionId == enroll.SessionId);
+
+            if (fee != null &&
+                (fee.Status != "Unpaid" || fee.FundsStatus != "NotReceived"))
             {
-                feeRepository.Delete(fee);
+                throw new Exception(
+                    "Không thể hủy tự động vì học phí đã phát sinh giao dịch. Vui lòng liên hệ phòng kế toán.");
             }
 
-            // XÓA ENROLL
-            enrollRepository.Delete(enroll);
+            // Giữ lịch sử đăng ký và Fee để không vi phạm unique index.
+            enroll.Status = EnrollStatus.Dropped;
+            enrollRepository.Update(enroll);
 
-            _unitOfWork.Save();
+            var remainingEnrolls = enrollRepository
+                .GetAll(x => x.ClassSessionId == classSessionId)
+                .Where(x => x.Id != enroll.Id && HoldsSeat(x))
+                .Select(x => x.StudentId)
+                .Distinct()
+                .Count();
+
+            classSession.EnrolledCount = remainingEnrolls;
+            if (classSession.Status == ClassSessionStatus.Full &&
+                remainingEnrolls < classSession.MaxStudents)
+            {
+                classSession.Status = ClassSessionStatus.OpenForRegistration;
+            }
+
+            classRepository.Update(classSession);
+
+            await _unitOfWork.SaveAsync();
+            await transaction.CommitAsync();
 
             return true;
         }

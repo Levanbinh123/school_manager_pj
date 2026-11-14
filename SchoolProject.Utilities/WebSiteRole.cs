@@ -11,6 +11,7 @@ namespace SchoolProject.Utilities
         public const string Website_Admin = "Admin";
         public const string Website_Teacher = "Teacher";
         public const string Website_Student = "Student";
-        public const string WebSite_Employee = "Employee";
+        public const string Website_Accountant = "Accountant";
+
     }
 }

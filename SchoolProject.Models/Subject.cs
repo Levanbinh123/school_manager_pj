@@ -15,16 +15,13 @@ namespace SchoolProject.Models
 
         // =========================
         // THUỘC NGÀNH
-        // =========================
-
-        public int MajorId { get; set; }
-
-        public Major Major { get; set; }
+        // ===============
         // =========================
         // MÔN DÀNH CHO NĂM NÀO
         // =========================
-
-        public ICollection<SubjectYear> SubjectYears { get; set; }
-            = new HashSet<SubjectYear>();
+        // Một môn có thể được nhiều ngành sử dụng
+        public ICollection<MajorSubject> MajorSubjects { get; set; }
+            = new HashSet<MajorSubject>();
+      
     }
 }

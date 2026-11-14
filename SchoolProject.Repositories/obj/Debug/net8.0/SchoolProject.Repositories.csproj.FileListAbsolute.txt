@@ -15,3 +15,4 @@ C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Repositories\obj\Debu
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Repositories\obj\Debug\net8.0\SchoolProject.Repositories.pdb
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Repositories\obj\Debug\net8.0\SchoolProject.Repositories.genruntimeconfig.cache
 C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Repositories\obj\Debug\net8.0\ref\SchoolProject.Repositories.dll
+C:\he_thong_quan_ly_truong_hoc\SchoolProject\SchoolProject.Repositories\obj\Debug\net8.0\SchoolProject.Repositories.sourcelink.json

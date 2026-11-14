@@ -19,5 +19,8 @@ namespace SchoolProject.Servies
         Task Update(int id, CreateScheduleViewModel vm);
 
         Task Delete(int id);
+        Task<List<ScheduleViewModel>> GetStudentScheduleByUserId(string userId);
+
+        Task<List<ScheduleViewModel>> GetTeacherScheduleByUserId(string userId);
     }
 }

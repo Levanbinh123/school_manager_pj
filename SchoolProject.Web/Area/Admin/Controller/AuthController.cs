@@ -1,112 +1,102 @@
-﻿    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-    using SchoolProject.Servies;
-    using SchoolProject.ViewModels;
+﻿
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SchoolProject.Servies;
+using SchoolProject.ViewModels;
+using SchoolProject.Utilities;
+using System.Security.Claims;
 
-    namespace SchoolProject.Web.Controllers
+namespace SchoolProject.Web.Controllers
+{
+    [ApiController]
+    [Route("api/auth")]
+    public class AuthController : ControllerBase
     {
-        [ApiController]
-        [Route("api/auth")]
-        public class AuthController : ControllerBase
+        private readonly IAuthService _authService;
+
+        public AuthController(IAuthService authService)
         {
-            private readonly IAuthService _authService;
+            _authService = authService;
+        }
 
-            public AuthController(IAuthService authService)
+      
+
+        // =========================
+        // LOGIN
+        // =========================
+        [HttpPost("login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login(
+            [FromBody] LoginViewModel vm)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _authService.Login(vm);
+
+            if (result == null)
             {
-                _authService = authService;
+                return Unauthorized(new
+                {
+                    message = "Email or password is incorrect"
+                });
             }
 
+            return Ok(result);
+        }
 
-            // =========================
-            // REGISTER
-            // =========================
+        // =========================
+        // LOGOUT
+        // =========================
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
 
-            [HttpPost("register")]
-            public async Task<IActionResult> Register(
-                [FromBody] RegisterViewModel vm)
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            await _authService.Logout(userId);
+
+            return Ok(new
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+                message = "Logout successfully"
+            });
+        }
 
-                try
-                {
-                    var userId =
-                        await _authService.Register(vm);
+        // =========================
+        // CREATE ACCOUNTANT
+        // ADMIN ONLY
+        // =========================
+        [HttpPost("create-accountant")]
+        [Authorize(Roles = WebSiteRole.Website_Admin)]
+        public async Task<IActionResult> CreateAccountant(
+            [FromBody] AccountantRegisterViewModel vm)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-                    return Ok(new
-                    {
-                        message = "Register successfully",
-                        userId = userId
-                    });
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-
-                    return BadRequest(new
-                    {
-                        message = ex.Message,
-                        innerException = ex.InnerException?.Message,
-                        innerException2 = ex.InnerException?.InnerException?.Message
-                    });
-                }
-            }
-
-
-            // =========================
-            // LOGIN
-            // =========================
-
-            [HttpPost("login")]
-            public async Task<IActionResult> Login(
-                [FromBody] LoginViewModel vm)
+            try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var result =
-                    await _authService.Login(vm);
-
-                if (result == null)
-                {
-                    return Unauthorized(new
-                    {
-                        message = "Email or password is incorrect"
-                    });
-                }
-
-                return Ok(result);
-            }
-
-
-            // =========================
-            // LOGOUT
-            // =========================
-
-            [HttpPost("logout")]
-            [Authorize]
-            public async Task<IActionResult> Logout()
-            {
-                var userId =
-                    User.FindFirst(
-                        System.Security.Claims.ClaimTypes.NameIdentifier
-                    )?.Value;
-
-                if (userId == null)
-                {
-                    return Unauthorized();
-                }
-
-                await _authService.Logout(userId);
+                var userId = await _authService.CreateAccountant(vm);
 
                 return Ok(new
                 {
-                    message = "Logout successfully"
+                    message = "Tạo tài khoản Accountant thành công.",
+                    userId = userId,
+                    email = vm.Email,
+                    role = WebSiteRole.Website_Accountant
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
                 });
             }
         }
     }
+}
