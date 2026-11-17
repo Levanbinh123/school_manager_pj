@@ -489,7 +489,7 @@ namespace SchoolProject.Servies
         // =====================================================
 
         public async Task<List<AssignmentViewModel>>
-            GetStudentAssignments(string userId)
+     GetStudentAssignments(string userId)
         {
             var student = await GetStudentByUserId(userId);
 
@@ -510,23 +510,52 @@ namespace SchoolProject.Servies
                 .GenericRepository<Assignment>()
                 .GetAllAsync();
 
+            // Lấy tất cả bài nộp
+            var submissions = await _unitOfWork
+                .GenericRepository<Submission>()
+                .GetAllAsync();
+
+            // Chỉ lấy bài nộp của sinh viên hiện tại
+            var mySubmissions = submissions
+                .Where(x => x.StudentId == student.Id)
+                .ToDictionary(x => x.AssignmentId);
+
             return assignments
                 .Where(x => classSessionIds.Contains(x.ClassSessionId))
                 .Select(x =>
                 {
                     var vm = new AssignmentViewModel(x);
-                    vm.AttachmentUrl = _fileStorage.GetReadUrl(x.AttachmentUrl);
+
+                    vm.AttachmentUrl = _fileStorage.GetReadUrl(
+                        x.AttachmentUrl);
+
+                    // Kiểm tra sinh viên đã nộp chưa
+                    if (mySubmissions.TryGetValue(x.Id, out var submission))
+                    {
+                        vm.IsSubmitted = true;
+                        vm.SubmittedAt = submission.SubmittedAt;
+                        vm.SubmissionFileUrl = _fileStorage.GetReadUrl(
+                            submission.FileUrl);
+                        vm.Score = submission.Score;
+                    }
+                    else
+                    {
+                        vm.IsSubmitted = false;
+                        vm.SubmittedAt = null;
+                        vm.SubmissionFileUrl = null;
+                        vm.Score = null;
+                    }
+
                     return vm;
                 })
                 .ToList();
         }
-
         // =====================================================
         // STUDENT - GET ASSIGNMENT BY ID
         // =====================================================
 
         public async Task<AssignmentViewModel?>
-            GetStudentAssignmentById(string userId, int id)
+     GetStudentAssignmentById(string userId, int id)
         {
             var student = await GetStudentByUserId(userId);
 
@@ -553,11 +582,36 @@ namespace SchoolProject.Servies
                 return null;
 
             var vm = new AssignmentViewModel(assignment);
+
             vm.AttachmentUrl = _fileStorage.GetReadUrl(
                 assignment.AttachmentUrl);
 
+            // Tìm bài nộp của đúng sinh viên và đúng Assignment
+            var submission = await _unitOfWork
+                .GenericRepository<Submission>()
+                .GetByIdAsync(x =>
+                    x.AssignmentId == id &&
+                    x.StudentId == student.Id);
+
+            if (submission != null)
+            {
+                vm.IsSubmitted = true;
+                vm.SubmittedAt = submission.SubmittedAt;
+                vm.SubmissionFileUrl = _fileStorage.GetReadUrl(
+                    submission.FileUrl);
+                vm.Score = submission.Score;
+            }
+            else
+            {
+                vm.IsSubmitted = false;
+                vm.SubmittedAt = null;
+                vm.SubmissionFileUrl = null;
+                vm.Score = null;
+            }
+
             return vm;
         }
+          
 
         // =====================================================
         // STUDENT - SUBMIT ASSIGNMENT

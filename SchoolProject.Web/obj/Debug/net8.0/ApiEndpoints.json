@@ -2075,6 +2075,48 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "SchoolProject.Controllers.TeacherScoreController",
+    "Method": "CalculateClassScores",
+    "RelativePath": "api/teacher/scores/class-session/{classSessionId}/calculate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "classSessionId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Controllers.TeacherScoreController",
+    "Method": "GetClassSessionStudents",
+    "RelativePath": "api/teacher/scores/class-session/{classSessionId}/students",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "classSessionId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SchoolProject.Controllers.TeacherScoreController",
+    "Method": "GetEligibleEnrolls",
+    "RelativePath": "api/teacher/scores/eligible-enrolls",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "SchoolProject.Web.Area.Admin.Controller.TeacherAssignmentController",
     "Method": "Grade",
     "RelativePath": "api/teacher/submissions/{id}/grade",

@@ -21,6 +21,10 @@ namespace SchoolProject.ViewModels
 
         public AssignmentType Type { get; set; }
         public string? AttachmentUrl { get; set; }
+        public bool IsSubmitted { get; set; }=false;
+        public DateTime? SubmittedAt { get; set; }
+        public string? SubmissionFileUrl {  get; set; }
+        public double? Score { get; set; }
 
         public AssignmentViewModel()
         {

@@ -32,7 +32,113 @@ namespace SchoolProject.Controllers
                 ?? throw new UnauthorizedAccessException(
                     "Token không hợp lệ hoặc thiếu UserId.");
         }
+        // ============================================================
+        // POST: api/teacher/scores/class-session/5/calculate
+        // Tính điểm toàn bộ sinh viên của một lớp học phần
+        // ============================================================
 
+        [HttpPost("class-session/{classSessionId:int}/calculate")]
+        public async Task<IActionResult> CalculateClassScores(
+            int classSessionId)
+        {
+            try
+            {
+                if (classSessionId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "ClassSessionId không hợp lệ."
+                    });
+                }
+
+                var result = await _studentScoreService.CalculateClassScores(
+                    GetUserId(),
+                    classSessionId);
+
+                return Ok(new
+                {
+                    message = $"Đã tính và chốt điểm cho {result.Count} sinh viên.",
+                    totalStudents = result.Count,
+                    data = result
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+        // ============================================================
+        // GET: api/teacher/scores/class-session/5/students
+        // Lấy toàn bộ sinh viên và điểm của lớp học phần
+        // ============================================================
+
+        [HttpGet("class-session/{classSessionId:int}/students")]
+        public async Task<IActionResult> GetClassSessionStudents(
+            int classSessionId)
+        {
+            try
+            {
+                if (classSessionId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "ClassSessionId không hợp lệ."
+                    });
+                }
+
+                var result = await _studentScoreService
+                    .GetClassSessionStudents(
+                        GetUserId(),
+                        classSessionId);
+
+                return Ok(new
+                {
+                    totalStudents = result.Count,
+                    data = result
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+        // GET: api/teacher/scores/eligible-enrolls
+        [HttpGet("eligible-enrolls")]
+        public async Task<IActionResult> GetEligibleEnrolls()
+        {
+            try
+            {
+                var result = await _studentScoreService
+                    .GetEligibleEnrollsForTeacher(GetUserId());
+
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
         // GET: api/teacher/scores
         // Xem tất cả điểm của các lớp giáo viên phụ trách
         [HttpGet]

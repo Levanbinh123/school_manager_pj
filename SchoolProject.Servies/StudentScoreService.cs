@@ -14,6 +14,150 @@ namespace SchoolProject.Servies
             _unitOfWork = unitOfWork;
         }
 
+        public async Task<List<TeacherEligibleEnrollViewModel>>
+            GetEligibleEnrollsForTeacher(string userId)
+        {
+            var teacher = GetTeacher(userId);
+
+            // Lấy các lớp học phần do giáo viên phụ trách.
+            var classSessions = _unitOfWork
+                .GenericRepository<ClassSession>()
+                .GetAll()
+                .Where(x => x.HomeroomTeacherId == teacher.Id)
+                .ToList();
+
+            var classSessionIds = classSessions
+                .Select(x => x.Id)
+                .ToHashSet();
+
+            // Lấy các đăng ký học phần đã được duyệt
+            // và thuộc lớp học phần của giáo viên.
+            var enrolls = _unitOfWork
+                .GenericRepository<Enroll>()
+                .GetAll()
+                .Where(x =>
+                    x.Status == EnrollStatus.Approved &&
+                    x.ClassSessionId.HasValue &&
+                    classSessionIds.Contains(x.ClassSessionId.Value))
+                .ToList();
+
+            // Lấy các Enroll đã có bảng điểm.
+            var existingEnrollIds = _unitOfWork
+                .GenericRepository<StudentScore>()
+                .GetAll()
+                .Select(x => x.EnrollId)
+                .ToHashSet();
+
+            // Chỉ trả về sinh viên chưa có bảng điểm.
+            return enrolls
+                .Where(x => !existingEnrollIds.Contains(x.Id))
+                .Select(x =>
+                {
+                    var classSession = classSessions.First(
+                        cs => cs.Id == x.ClassSessionId!.Value);
+
+                    return new TeacherEligibleEnrollViewModel
+                    {
+                        EnrollId = x.Id,
+                        StudentId = x.StudentId,
+                        SubjectId = classSession.SubjectId,
+                        ClassSessionId = classSession.Id
+                    };
+                })
+                .ToList();
+        }
+        // ============================================================
+        // TEACHER - GET ALL STUDENTS IN A CLASS SESSION
+        // ============================================================
+
+        public async Task<List<StudentScoreViewModel>> GetClassSessionStudents(
+            string userId,
+            int classSessionId)
+        {
+            if (classSessionId <= 0)
+                throw new Exception("ClassSessionId không hợp lệ.");
+
+            var teacher = GetTeacher(userId);
+
+            var classSession = _unitOfWork
+                .GenericRepository<ClassSession>()
+                .GetById(classSessionId);
+
+            if (classSession == null)
+                throw new Exception("Không tìm thấy ClassSession.");
+
+            ValidateTeacherPermission(teacher, classSession);
+
+            // Lấy danh sách sinh viên đã được duyệt vào lớp
+            var enrolls = _unitOfWork
+                .GenericRepository<Enroll>()
+                .GetAll()
+                .Where(x =>
+                    x.ClassSessionId == classSessionId &&
+                    x.SubjectId == classSession.SubjectId &&
+                    x.Status == EnrollStatus.Approved)
+                .ToList();
+
+            if (!enrolls.Any())
+                return new List<StudentScoreViewModel>();
+
+            var enrollIds = enrolls.Select(x => x.Id).ToList();
+
+            // Lấy các bảng điểm đã tồn tại
+            var scores = _unitOfWork
+                .GenericRepository<StudentScore>()
+                .GetAll()
+                .Where(x => enrollIds.Contains(x.EnrollId))
+                .ToList();
+
+            var result = new List<StudentScoreViewModel>();
+
+            foreach (var enroll in enrolls)
+            {
+                var student = _unitOfWork
+                    .GenericRepository<Student>()
+                    .GetById(enroll.StudentId);
+
+                if (student == null || student.IsDeleted)
+                    continue;
+
+                var score = scores.FirstOrDefault(
+                    x => x.EnrollId == enroll.Id);
+
+                StudentScoreViewModel item;
+
+                if (score != null)
+                {
+                    item = new StudentScoreViewModel(score);
+                }
+                else
+                {
+                    // Sinh viên chưa có bảng điểm
+                    item = new StudentScoreViewModel
+                    {
+                        Id = 0,
+                        EnrollId = enroll.Id,
+                        SubjectId = classSession.SubjectId,
+                        HasScore = false,
+                        IsFinalized = false
+                    };
+                }
+
+                item.StudentId = student.Id;
+                item.StudentName =
+                    $"{student.LastName} {student.FirstName}".Trim();
+
+                item.YearLevel = student.YearLevel;
+
+                result.Add(item);
+            }
+
+            return result
+                .OrderBy(x => x.StudentName)
+                .ToList();
+        }
+
+
         // ============================================================
         // 1. TEACHER - GET ALL SCORES
         // ============================================================
@@ -61,6 +205,154 @@ namespace SchoolProject.Servies
             }
 
             return result;
+        }
+        // ============================================================
+        // TEACHER - CALCULATE SCORES FOR ENTIRE CLASS SESSION
+        // ============================================================
+
+        public async Task<List<StudentScoreViewModel>> CalculateClassScores(
+            string userId,
+            int classSessionId)
+        {
+            if (classSessionId <= 0)
+                throw new Exception("ClassSessionId không hợp lệ.");
+
+            var teacher = GetTeacher(userId);
+
+            // 1. Lấy ClassSession
+            var classSession = _unitOfWork
+                .GenericRepository<ClassSession>()
+                .GetById(classSessionId);
+
+            if (classSession == null)
+                throw new Exception("Không tìm thấy ClassSession.");
+
+            // 2. Kiểm tra quyền giáo viên
+            ValidateTeacherPermission(teacher, classSession);
+
+            // 3. Kiểm tra lớp và Session đã kết thúc
+            ValidateSessionEnded(classSession);
+
+            // 4. Lấy tất cả sinh viên đã được duyệt trong lớp
+            var enrolls = _unitOfWork
+                .GenericRepository<Enroll>()
+                .GetAll()
+                .Where(x =>
+                    x.ClassSessionId == classSessionId &&
+                    x.SubjectId == classSession.SubjectId &&
+                    x.Status == EnrollStatus.Approved)
+                .ToList();
+
+            if (!enrolls.Any())
+                throw new Exception(
+                    "Không có sinh viên nào ở trạng thái Approved trong lớp học phần này.");
+
+            var scoreRepository =
+                _unitOfWork.GenericRepository<StudentScore>();
+
+            var existingScores = scoreRepository
+                .GetAll()
+                .Where(x => enrolls.Select(e => e.Id).Contains(x.EnrollId))
+                .ToList();
+
+            // 5. Tính điểm cho toàn bộ sinh viên trước.
+            // Nếu một sinh viên thiếu dữ liệu, dừng trước khi lưu.
+            var pendingResults = new List<(
+                Enroll Enroll,
+                StudentScore? ExistingScore,
+                StudentScoreResult Calculated
+            )>();
+
+            foreach (var enroll in enrolls)
+            {
+                var existingScore = existingScores
+                    .FirstOrDefault(x => x.EnrollId == enroll.Id);
+
+                if (existingScore != null && existingScore.IsFinalized)
+                {
+                    throw new Exception(
+                        $"Sinh viên có EnrollId {enroll.Id} đã được chốt điểm. " +
+                        "Không thể tính lại bảng điểm đã chốt.");
+                }
+
+                var calculated = await CalculateStudentScore(
+                    enroll,
+                    classSession);
+
+                pendingResults.Add((
+                    enroll,
+                    existingScore,
+                    calculated
+                ));
+            }
+
+            // 6. Tất cả sinh viên đã tính thành công.
+            // Bắt đầu tạo/cập nhật bảng điểm và chốt điểm.
+            var result = new List<StudentScoreViewModel>();
+
+            foreach (var item in pendingResults)
+            {
+                var enroll = item.Enroll;
+                var calculated = item.Calculated;
+
+                var score = item.ExistingScore;
+
+                if (score == null)
+                {
+                    score = new StudentScore
+                    {
+                        EnrollId = enroll.Id
+                    };
+
+                    score.AttendanceScore = calculated.AttendanceScore;
+                    score.QuizScore = calculated.AssignmentAverage;
+                    score.MidtermScore = calculated.MidtermExamScore;
+                    score.FinalScore = calculated.FinalExamScore;
+
+                    score.TotalScore = calculated.TotalScore;
+                    score.LetterGrade = calculated.LetterGrade;
+                    score.GPA = calculated.GPA;
+
+                    score.IsFinalized = true;
+
+                    await scoreRepository.AddAsync(score);
+                }
+                else
+                {
+                    score.AttendanceScore = calculated.AttendanceScore;
+                    score.QuizScore = calculated.AssignmentAverage;
+                    score.MidtermScore = calculated.MidtermExamScore;
+                    score.FinalScore = calculated.FinalExamScore;
+
+                    score.TotalScore = calculated.TotalScore;
+                    score.LetterGrade = calculated.LetterGrade;
+                    score.GPA = calculated.GPA;
+
+                    score.IsFinalized = true;
+
+                    scoreRepository.Update(score);
+                }
+
+                // 7. Cập nhật trạng thái Enroll
+                enroll.Status = calculated.TotalScore >= 4.0
+                    ? EnrollStatus.Completed
+                    : EnrollStatus.Failed;
+
+                _unitOfWork
+                    .GenericRepository<Enroll>()
+                    .Update(enroll);
+
+                result.Add(new StudentScoreViewModel(score)
+                {
+                    SubjectId = classSession.SubjectId
+                });
+            }
+
+            // 8. Lưu sau khi xử lý toàn bộ lớp
+            _unitOfWork.Save();
+
+            return await GetClassSessionStudents(
+                userId, classSessionId);
         }
 
         // ============================================================

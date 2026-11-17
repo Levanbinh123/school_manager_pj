@@ -19,6 +19,7 @@ namespace SchoolProject.ViewModels
         public int? ClassSessionId { get; set; }
 
         public string? ClassName { get; set; }
+        public int? ClassSessionStatus { get; set; }
 
         public EnrollViewModel()
         {
@@ -42,6 +43,7 @@ namespace SchoolProject.ViewModels
 
             ClassName =
                 enroll.ClassSession?.Class?.Name;
+            ClassSessionStatus=enroll.ClassSession==null?null:(int)enroll.ClassSession.Status;
         }
     }
 }

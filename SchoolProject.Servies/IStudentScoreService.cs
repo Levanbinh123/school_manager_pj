@@ -26,5 +26,16 @@ namespace SchoolProject.Servies
         Task<List<StudentScoreViewModel>> GetStudentScoresBySubject(
             string userId,
             int subjectId);
+        Task<List<TeacherEligibleEnrollViewModel>>
+    GetEligibleEnrollsForTeacher(string userId);
+        // Giáo viên xem danh sách toàn bộ sinh viên trong lớp học phần
+        Task<List<StudentScoreViewModel>> GetClassSessionStudents(
+            string userId,
+            int classSessionId);
+
+        // Giáo viên tính điểm toàn bộ sinh viên trong lớp học phần
+        Task<List<StudentScoreViewModel>> CalculateClassScores(
+            string userId,
+        int classSessionId);
     }
 }

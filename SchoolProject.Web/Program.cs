@@ -23,12 +23,32 @@ builder.Services.Configure<CloudflareR2Options>(
 // =========================
 // CORS
 // =========================
+// =========================
+// CORS
+// =========================
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("FlutterPolicy", policy =>
+    options.AddPolicy("FlutterWeb", policy =>
     {
         policy
-            .AllowAnyOrigin()
+            .SetIsOriginAllowed(origin =>
+            {
+                if (!Uri.TryCreate(
+                    origin,
+                    UriKind.Absolute,
+                    out var uri))
+                {
+                    return false;
+                }
+
+                // Chỉ cho phép localhost và 127.0.0.1
+                // Flutter Web có thể chạy trên nhiều port khác nhau
+                return (uri.Host == "localhost" ||
+                        uri.Host == "127.0.0.1")
+                       &&
+                       (uri.Scheme == "http" ||
+                        uri.Scheme == "https");
+            })
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -187,7 +207,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
@@ -195,7 +215,7 @@ DataSeeding();
 
 app.UseRouting();
 
-app.UseCors("FlutterPolicy");
+app.UseCors("FlutterWeb");
 
 // QUAN TRỌNG
 app.UseAuthentication();

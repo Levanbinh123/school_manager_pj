@@ -1,4 +1,5 @@
-﻿using SchoolProject.Models;
+﻿
+using SchoolProject.Models;
 
 namespace SchoolProject.ViewModels
 {
@@ -10,6 +11,16 @@ namespace SchoolProject.ViewModels
 
         public int SubjectId { get; set; }
 
+        // Thông tin sinh viên
+        public int StudentId { get; set; }
+
+        public string StudentName { get; set; } = string.Empty;
+
+        public int YearLevel { get; set; }
+
+        // Có bảng điểm hay chưa
+        public bool HasScore { get; set; }
+
         public double AttendanceScore { get; set; }
 
         public double QuizScore { get; set; }
@@ -20,7 +31,8 @@ namespace SchoolProject.ViewModels
 
         public double TotalScore { get; set; }
 
-        public string LetterGrade { get; set; }
+        public string LetterGrade { get; set; } = string.Empty;
+
         public double GPA { get; set; }
 
         public bool IsFinalized { get; set; }
@@ -29,35 +41,24 @@ namespace SchoolProject.ViewModels
         {
         }
 
-        public StudentScoreViewModel(
-            StudentScore score)
+        public StudentScoreViewModel(StudentScore score)
         {
             Id = score.Id;
-
             EnrollId = score.EnrollId;
 
-            SubjectId =
-                score.Enroll?.SubjectId ?? 0;
+            SubjectId = score.Enroll?.SubjectId ?? 0;
 
-            AttendanceScore =
-                score.AttendanceScore;
+            AttendanceScore = score.AttendanceScore;
+            QuizScore = score.QuizScore;
+            MidtermScore = score.MidtermScore;
+            FinalScore = score.FinalScore;
 
-            QuizScore =
-                score.QuizScore;
-
-            MidtermScore =
-                score.MidtermScore;
-
-            FinalScore =
-                score.FinalScore;
-
-            TotalScore =
-                score.TotalScore;
-
-            LetterGrade =
-                score.LetterGrade;
+            TotalScore = score.TotalScore;
+            LetterGrade = score.LetterGrade;
             GPA = score.GPA;
+
             IsFinalized = score.IsFinalized;
+            HasScore = true;
         }
     }
 }

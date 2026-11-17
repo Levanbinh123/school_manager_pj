@@ -7,7 +7,6 @@ namespace SchoolProject.Web.Area.Admin.Controller
 {
     [ApiController]
     [Route("api/admin/study-periods")]
-    [Authorize(Roles = "Admin")]
     public class StudyPeriodController : ControllerBase
     {
         private readonly IStudyPeriodService _studyPeriodService;

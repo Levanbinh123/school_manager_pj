@@ -111,6 +111,7 @@ namespace SchoolProject.Web.Area.Admin.Controller
         // Chỉ đọc trạng thái, không cập nhật database
         // =====================================================
 
+
         [AllowAnonymous]
         [HttpGet("return")]
         public async Task<IActionResult> Return()
@@ -127,17 +128,48 @@ namespace SchoolProject.Web.Area.Admin.Controller
                 });
             }
 
-            var result = await _sePayService.ProcessReturn(invoice);
-
-            return Ok(new
+            try
             {
-                success = result.Success,
-                feeId = result.FeeId,
-                invoice = invoice,
-                paymentResult = resultType,
-                message = result.Message
-            });
+                // Xử lý kết quả trả về từ SePay
+                var result = await _sePayService.ProcessReturn(invoice);
+
+                var frontendUrl = _settings.FrontendReturnUrl;
+
+                if (string.IsNullOrWhiteSpace(frontendUrl))
+                {
+                    return StatusCode(500, new
+                    {
+                        success = false,
+                        message = "Chưa cấu hình FrontendReturnUrl."
+                    });
+                }
+
+                // Tạo URL chuyển hướng về Flutter FE
+                var redirectUrl = QueryHelpers.AddQueryString(
+                    frontendUrl,
+                    new Dictionary<string, string>
+                    {
+                        ["status"] = result.Success ? "success" : "failed",
+                        ["feeId"] = result.FeeId.ToString(),
+                        ["invoice"] = invoice,
+                        ["message"] = result.Message,
+                        ["gatewayResult"] = resultType
+                    });
+
+                return Redirect(redirectUrl);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SePay Return Error: {ex}");
+
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Có lỗi khi xử lý kết quả thanh toán."
+                });
+            }
         }
+
         [AllowAnonymous]
         [HttpPost("ipn")]
         [Consumes("application/json")]
